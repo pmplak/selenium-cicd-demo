@@ -1,18 +1,25 @@
 package saucelab;
 
+import java.util.logging.Logger;
+
 public class PaymentValidation {
+
+	private static final Logger LOGGER =
+            Logger.getLogger(PaymentValidation.class.getName());
 
     public static void main(String[] args) {
 
-        // Main branch change for Three-Way Merge Lab
-        System.out.println("Main branch development");
-        System.out.println("Learning 3-way merge and merge conflicts");
+        printTrainingMessages();
 
-        System.out.println("Payment Validation");
-        System.out.println("Git Internals Learning");
-        System.out.println("Git Core Learning");
-        System.out.println("Adding a Branch divergence");
-        System.out.println("Main branch after feature creation");
+    }
+
+    private static void printTrainingMessages() {
+
+        LOGGER.info("Git Core Learning");
+        LOGGER.info("Adding a Branch divergence");
+        LOGGER.info("Main branch after feature creation");
+        LOGGER.info("Learning Git Rebase");
+
     }
 
 }
