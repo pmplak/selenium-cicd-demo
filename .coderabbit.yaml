@@ -28,5 +28,14 @@ reviews:
         - Avoid unnecessary code duplication
         - Avoid Thread.sleep() where explicit waits are appropriate
         - Maintain readable method and class names
-
+		
+	- path: "src/test/java/**/*.java"
+	  instructions: |
+	    Review test automation code for:
+	    - Clear test names
+	    - One logical scenario per test
+	    - Reliable assertions
+	    - Avoid duplicated test logic
+	    - Prefer Page Object Model over duplicated locators
+	    - Avoid hard-coded waits and test data where possible
   
