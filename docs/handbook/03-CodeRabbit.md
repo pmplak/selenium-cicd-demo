@@ -56,6 +56,21 @@ Different review guidance for:
 
 ---
 
+## Maven Review Rules
+
+CodeRabbit reviews `pom.xml` for:
+
+- Duplicate dependencies
+- Version conflicts
+- Missing dependency versions
+- Unused dependencies
+- Proper plugin configuration
+- Dependency scope correctness
+- Dependency version consistency
+- Explicit plugin versions
+- Transitive dependencies
+- Maintainable build configuration
+
 ## Learning Workflow
 
 Official Documentation
