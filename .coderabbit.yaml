@@ -40,13 +40,16 @@ reviews:
 	    - Avoid hard-coded waits and test data where possible
 		
 	- path: "pom.xml"
-	  instructions: |
-	    Review Maven configuration for:
-	    - Duplicate dependencies
-	    - Version conflicts
-	    - Missing dependency versions
-	    - Unused dependencies
-	    - Proper plugin configuration
-	    - Dependency scope correctness
-	    - Clean dependency organization
+  instructions: |
+    Review Maven configuration for:
+    - Duplicate dependencies
+    - Version conflicts
+    - Missing dependency versions
+    - Unused dependencies
+    - Proper plugin configuration
+    - Dependency scope correctness
+    - Maintain dependency version consistency
+    - Ensure plugin versions are explicitly defined
+    - Avoid unnecessary transitive dependencies
+    - Keep the build configuration clean and maintainable
   
