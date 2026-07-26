@@ -17,5 +17,16 @@ reviews:
         - Technical accuracy
         - Markdown formatting
         - Broken links (if any)
+		
+	- path: "src/main/java/**/*.java"
+      instructions: |
+        Review Java code for:
+        - SOLID principles
+        - Clean code practices
+        - Proper exception handling
+        - Logging best practices
+        - Avoid unnecessary code duplication
+        - Avoid Thread.sleep() where explicit waits are appropriate
+        - Maintain readable method and class names
 
   
