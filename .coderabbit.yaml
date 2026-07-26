@@ -38,4 +38,15 @@ reviews:
 	    - Avoid duplicated test logic
 	    - Prefer Page Object Model over duplicated locators
 	    - Avoid hard-coded waits and test data where possible
+		
+	- path: "pom.xml"
+	  instructions: |
+	    Review Maven configuration for:
+	    - Duplicate dependencies
+	    - Version conflicts
+	    - Missing dependency versions
+	    - Unused dependencies
+	    - Proper plugin configuration
+	    - Dependency scope correctness
+	    - Clean dependency organization
   
