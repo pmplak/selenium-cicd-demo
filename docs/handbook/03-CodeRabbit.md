@@ -103,6 +103,18 @@ CodeRabbit reviews API automation for:
 - Logging
 - Readability
 
+## Knowledge Base
+
+CodeRabbit uses the project documentation as contextual knowledge.
+
+Current knowledge includes:
+
+- Java standards
+- Selenium standards
+- API standards
+- Maven standards
+- Documentation standards
+
 ## Learning Workflow
 
 Official Documentation

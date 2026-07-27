@@ -91,3 +91,10 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - API automation review guidance
+
+## Sprint 13
+
+### Added
+
+- Engineering Standards handbook
+- Expanded CodeRabbit knowledge base
