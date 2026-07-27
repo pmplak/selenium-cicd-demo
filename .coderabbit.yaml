@@ -1,5 +1,7 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 
+language: en
+
 reviews:
   high_level_summary: true
 
@@ -17,8 +19,8 @@ reviews:
         - Technical accuracy
         - Markdown formatting
         - Broken links (if any)
-		
-	- path: "src/main/java/**/*.java"
+
+    - path: "src/main/java/**/*.java"
       instructions: |
         Review Java code for:
         - SOLID principles
@@ -28,28 +30,37 @@ reviews:
         - Avoid unnecessary code duplication
         - Avoid Thread.sleep() where explicit waits are appropriate
         - Maintain readable method and class names
-		
-	- path: "src/test/java/**/*.java"
-	  instructions: |
-	    Review test automation code for:
-	    - Clear test names
-	    - One logical scenario per test
-	    - Reliable assertions
-	    - Avoid duplicated test logic
-	    - Prefer Page Object Model over duplicated locators
-	    - Avoid hard-coded waits and test data where possible
-		
-	- path: "pom.xml"
-  instructions: |
-    Review Maven configuration for:
-    - Duplicate dependencies
-    - Version conflicts
-    - Missing dependency versions
-    - Unused dependencies
-    - Proper plugin configuration
-    - Dependency scope correctness
-    - Maintain dependency version consistency
-    - Ensure plugin versions are explicitly defined
-    - Avoid unnecessary transitive dependencies
-    - Keep the build configuration clean and maintainable
-  
+
+    - path: "src/test/java/**/*.java"
+      instructions: |
+        Review test automation code for:
+        - Clear test names
+        - One logical scenario per test
+        - Reliable assertions
+        - Avoid duplicated test logic
+        - Prefer Page Object Model over duplicated locators
+        - Avoid hard-coded waits and test data where possible
+
+    - path: "pom.xml"
+      instructions: |
+        Review Maven configuration for:
+        - Duplicate dependencies
+        - Version conflicts
+        - Missing dependency versions
+        - Unused dependencies
+        - Proper plugin configuration
+        - Dependency scope correctness
+        - Maintain dependency version consistency
+        - Ensure plugin versions are explicitly defined
+        - Avoid unnecessary transitive dependencies
+        - Keep the build configuration clean and maintainable
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: auto
+
+  issues:
+    scope: auto
