@@ -73,3 +73,15 @@ All notable changes to this project are documented in this file.
 ## Added
 
 - Test Automation Path Instructions
+
+## Sprint 10
+
+### Added
+
+- Git ignore review instructions
+- Repository hygiene validation
+## Sprint 11
+
+### Added
+
+- Selenium automation review guidance

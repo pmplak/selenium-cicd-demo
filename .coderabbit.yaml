@@ -33,13 +33,15 @@ reviews:
 
     - path: "src/test/java/**/*.java"
       instructions: |
-        Review test automation code for:
-        - Clear test names
-        - One logical scenario per test
-        - Reliable assertions
-        - Avoid duplicated test logic
+        Review Selenium automation tests for:
+        - One business scenario per test
+        - Clear and descriptive test names
         - Prefer Page Object Model over duplicated locators
-        - Avoid hard-coded waits and test data where possible
+        - Explicit waits instead of Thread.sleep()
+        - Reliable assertions with meaningful failure messages
+        - Reusable test utilities instead of duplicated code
+        - Proper exception handling where appropriate
+        - Readable and maintainable test flow
 
     - path: "pom.xml"
       instructions: |

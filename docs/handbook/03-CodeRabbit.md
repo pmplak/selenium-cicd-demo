@@ -71,6 +71,28 @@ CodeRabbit reviews `pom.xml` for:
 - Transitive dependencies
 - Maintainable build configuration
 
+## Git Ignore Review
+
+CodeRabbit reviews `.gitignore` for:
+
+- Missing ignore rules
+- Duplicate patterns
+- IDE artifacts
+- Build output
+- Sensitive files
+- Repository cleanliness
+
+## Selenium Test Review
+
+CodeRabbit reviews Selenium automation code for:
+
+- Test readability
+- Page Object Model usage
+- Explicit waits
+- Assertion quality
+- Reusable utilities
+- Maintainable test flow
+
 ## Learning Workflow
 
 Official Documentation
