@@ -98,3 +98,10 @@ All notable changes to this project are documented in this file.
 
 - Engineering Standards handbook
 - Expanded CodeRabbit knowledge base
+
+## Sprint 14
+
+### Added
+
+- CodeRabbit Version 1.0 release documentation
+- Production readiness review
