@@ -55,6 +55,15 @@ reviews:
         - Avoid unnecessary transitive dependencies
         - Keep the build configuration clean and maintainable
 
+    - path: ".gitignore"
+      instructions: |
+        Review the Git ignore configuration for:
+        - Unnecessary ignored files
+        - Missing common IDE and build artifacts
+        - Sensitive files that should never be committed
+        - Duplicate ignore patterns
+        - Repository cleanliness
+
 chat:
   auto_reply: true
 

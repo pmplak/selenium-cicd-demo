@@ -14,7 +14,7 @@ public class LoginAndVerify {
 	static Logger logger = Logger.getLogger(LoginAndVerify.class.getName());
 
 	public static void main(String[] args) throws InterruptedException {
-		// TODO Auto-generated method stub
+		
 		
 		 ChromeOptions options = new ChromeOptions();
          options.addArguments("--start-maximized");
