@@ -85,3 +85,9 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - Selenium automation review guidance
+
+## Sprint 12
+
+### Added
+
+- API automation review guidance

@@ -66,6 +66,16 @@ reviews:
         - Duplicate ignore patterns
         - Repository cleanliness
 
+    - path: "src/test/java/**/*Api*.java"
+      instructions: |
+        Review API automation code for:
+        - Proper request validation
+        - Meaningful response assertions
+        - Reusable API client methods
+        - Avoid duplicated endpoint definitions
+        - Clear request and response logging
+        - Maintain readable test flow
+
 chat:
   auto_reply: true
 

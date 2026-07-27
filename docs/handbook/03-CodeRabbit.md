@@ -92,6 +92,16 @@ CodeRabbit reviews Selenium automation code for:
 - Assertion quality
 - Reusable utilities
 - Maintainable test flow
+## API Automation Review
+
+CodeRabbit reviews API automation for:
+
+- Request validation
+- Response assertions
+- API client reuse
+- Endpoint duplication
+- Logging
+- Readability
 
 ## Learning Workflow
 
