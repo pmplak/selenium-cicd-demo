@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="SauceDemo Suite">
+
+    <test name="SauceDemo Tests">
+
+        <classes>
+
+            <class name="saucelab.LoginAndVerifyTest"/>
+
+            <class name="saucelab.AddProductAndCompleteCheckoutTest"/>
+
+        </classes>
+
+    </test>
+
+</suite>
