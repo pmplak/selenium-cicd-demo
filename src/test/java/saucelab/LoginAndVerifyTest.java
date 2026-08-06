@@ -20,7 +20,22 @@ public class LoginAndVerifyTest {
     @Test
     public void loginTest() throws InterruptedException {
 
+        String environment = System.getProperty("environment");
+        String browser = System.getProperty("browser");
+        String suite = System.getProperty("suite");
+        String headless = System.getProperty("headless");
+
+        System.out.println("Environment : " + environment);
+        System.out.println("Browser     : " + browser);
+        System.out.println("Suite       : " + suite);
+        System.out.println("Headless    : " + headless);
+
         ChromeOptions options = new ChromeOptions();
+
+        if ("true".equalsIgnoreCase(System.getProperty("headless"))) {
+            options.addArguments("--headless=new");
+        }
+
         options.addArguments("--start-maximized");
         options.addArguments("--disable-notifications");
 
