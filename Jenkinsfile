@@ -280,7 +280,20 @@ pipeline {
 
             steps {
 
-                echo "Deploying application to ${params.Environment}"
+                script {
+
+                    if(params.Environment == 'PROD') {
+
+                        input(
+                            message: 'Approve Production Deployment?',
+                            ok: 'Deploy'
+                        )
+
+                    }
+
+                    echo "Deploying application to ${params.Environment}"
+
+                }
 
             }
 
