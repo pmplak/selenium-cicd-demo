@@ -266,6 +266,42 @@ pipeline {
 
         }
 
+        stage('Deploy') {
+
+            when {
+
+                expression {
+
+                    params.Environment != 'QA'
+
+                }
+
+            }
+
+            steps {
+
+                echo "Deploying application to ${params.Environment}"
+
+            }
+
+            post {
+
+                success {
+
+                    echo "Deployment Successful"
+
+                }
+
+                failure {
+
+                    echo "Deployment Failed"
+
+                }
+
+            }
+
+        }
+
         stage('Use Secret Credential') {
 
             steps {
