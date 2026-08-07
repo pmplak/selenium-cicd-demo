@@ -73,13 +73,13 @@ pipeline {
                 ]) {
 
                     echo "Git User : ${SSH_USER}"
-                    echo "Private Key File : ${SSH_KEY}"
+                    echo "SSH Credential successfully loaded."
 
                 }
 
             }
 
-        }        
+        }       
 
         
 
@@ -131,6 +131,31 @@ pipeline {
             }
 
         }
+
+        stage('Use Secret Credential') {
+
+            steps {
+
+                withCredentials([
+                    string(
+                        credentialsId: 'dummy-api-key',
+                        variable: 'API_KEY'
+                    )
+                ]) {
+
+                    echo "Credential loaded successfully."
+
+                    bat '''
+                    echo Credential retrieved successfully.
+                    '''
+
+                }
+
+            }
+
+        }
+
+        
 
     }
 
