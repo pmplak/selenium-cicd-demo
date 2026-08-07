@@ -60,6 +60,29 @@ pipeline {
 
         }
 
+        stage('Credential Demonstration') {
+
+            steps {
+
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'github-ssh',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+
+                    echo "Git User : ${SSH_USER}"
+                    echo "Private Key File : ${SSH_KEY}"
+
+                }
+
+            }
+
+        }        
+
+        
+
         stage('Checkout Source Code') {
 
             steps {
