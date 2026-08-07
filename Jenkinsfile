@@ -1,3 +1,14 @@
+def deployApplication(String environmentName) {
+
+    echo "===================================="
+    echo "Starting Deployment"
+    echo "Target Environment : ${environmentName}"
+    echo "Deployment Started..."
+    echo "Deployment Completed Successfully."
+    echo "===================================="
+
+}
+
 pipeline {
 
     agent any
@@ -291,7 +302,7 @@ pipeline {
 
                     }
 
-                    echo "Deploying application to ${params.Environment}"
+                    deployApplication(params.Environment)
 
                 }
 
