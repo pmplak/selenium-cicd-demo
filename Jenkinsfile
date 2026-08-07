@@ -164,9 +164,9 @@ pipeline {
 
                     }
 
-                    def buildMessage(name){
+                    def buildMessage = { name ->
 
-                        return "Welcome to ${name}"
+                        return "Welcome ${name}"
 
                     }
 
