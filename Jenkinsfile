@@ -3,7 +3,25 @@ pipeline {
     agent any
 
     options {
+
         timestamps()
+
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '20',
+                artifactNumToKeepStr: '10'
+            )
+        )
+
+        disableConcurrentBuilds()
+
+        timeout(
+            time: 30,
+            unit: 'MINUTES'
+        )
+
+        skipDefaultCheckout()
+
     }
 
     tools {
@@ -91,9 +109,11 @@ pipeline {
 
                 cleanWs()
 
-                git branch: env.GIT_BRANCH,
+                git(
+                    branch: env.GIT_BRANCH,
                     credentialsId: 'github-ssh',
                     url: env.REPOSITORY
+                )
 
             }
 
@@ -103,13 +123,17 @@ pipeline {
 
             steps {
 
-                bat """
-                mvn ${env.MAVEN_GOAL} ^
-                -Denvironment=${params.Environment} ^
-                -Dbrowser=${params.Browser} ^
-                -Dsuite=${params.Suite} ^
-                -Dheadless=${params.Headless}
-                """
+                retry(2) {
+
+                    bat """
+                    mvn ${env.MAVEN_GOAL} ^
+                    -Denvironment=${params.Environment} ^
+                    -Dbrowser=${params.Browser} ^
+                    -Dsuite=${params.Suite} ^
+                    -Dheadless=${params.Headless}
+                    """
+
+                }
 
             }
 
@@ -196,19 +220,19 @@ pipeline {
 
         always {
 
-            echo 'Pipeline execution completed.'
+            echo "Pipeline execution completed."
 
         }
 
         success {
 
-            echo 'Build completed successfully.'
+            echo "Build completed successfully."
 
         }
 
         failure {
 
-            echo 'Build failed.'
+            echo "Build failed."
 
         }
 
