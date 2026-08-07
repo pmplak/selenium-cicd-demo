@@ -79,13 +79,14 @@ pipeline {
 
             }
 
-        }       
-
-        
+        }
 
         stage('Checkout Source Code') {
 
             steps {
+
+                // Sprint 17 - Clean the existing workspace
+                deleteDir()
 
                 git branch: env.GIT_BRANCH,
                     credentialsId: 'github-ssh',
@@ -154,8 +155,6 @@ pipeline {
             }
 
         }
-
-        
 
     }
 
