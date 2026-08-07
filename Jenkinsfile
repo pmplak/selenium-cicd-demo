@@ -85,7 +85,6 @@ pipeline {
 
             steps {
 
-                // Sprint 17 - Clean the existing workspace
                 cleanWs()
 
                 git branch: env.GIT_BRANCH,
@@ -151,6 +150,35 @@ pipeline {
                     '''
 
                 }
+
+            }
+
+        }
+
+        stage('Stash Demo') {
+
+            steps {
+
+                stash(
+                    name: 'project-files',
+                    includes: 'target/**/*'
+                )
+
+                echo "Target folder stashed successfully."
+
+            }
+
+        }
+
+        stage('Unstash Demo') {
+
+            steps {
+
+                deleteDir()
+
+                unstash 'project-files'
+
+                echo "Target folder restored successfully."
 
             }
 
