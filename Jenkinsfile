@@ -86,7 +86,7 @@ pipeline {
             steps {
 
                 // Sprint 17 - Clean the existing workspace
-                deleteDir()
+                cleanWs()
 
                 git branch: env.GIT_BRANCH,
                     credentialsId: 'github-ssh',
