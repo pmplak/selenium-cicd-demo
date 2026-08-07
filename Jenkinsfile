@@ -41,19 +41,19 @@ pipeline {
 
         choice(
             name: 'Environment',
-            choices: ['QA', 'UAT', 'PROD'],
+            choices: ['QA','UAT','PROD'],
             description: 'Select Environment'
         )
 
         choice(
             name: 'Browser',
-            choices: ['Chrome', 'Edge'],
+            choices: ['Chrome','Edge'],
             description: 'Select Browser'
         )
 
         choice(
             name: 'Suite',
-            choices: ['Smoke', 'Regression'],
+            choices: ['Smoke','Regression'],
             description: 'Select Test Suite'
         )
 
@@ -71,12 +71,11 @@ pipeline {
 
             steps {
 
-                echo "========================================="
+                echo "================================="
                 echo "Build Owner : ${env.BUILD_OWNER}"
                 echo "Repository  : ${env.REPOSITORY}"
                 echo "Branch      : ${env.GIT_BRANCH}"
-                echo "Maven Goal  : ${env.MAVEN_GOAL}"
-                echo "========================================="
+                echo "================================="
 
             }
 
@@ -95,7 +94,7 @@ pipeline {
                 ]) {
 
                     echo "Git User : ${SSH_USER}"
-                    echo "SSH Credential successfully loaded."
+                    echo "SSH Credential Loaded"
 
                 }
 
@@ -119,11 +118,106 @@ pipeline {
 
         }
 
-        stage('Build & Execute Tests') {
+        stage('Browser Validation') {
 
             steps {
 
-                retry(2) {
+                script {
+
+                    if(params.Browser=="Chrome"){
+
+                        echo "Executing Chrome Tests"
+
+                    }
+                    else{
+
+                        echo "Executing Edge Tests"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        stage('Scripted Pipeline Demo') {
+
+            steps {
+
+                script {
+
+                    echo "===== Scripted Pipeline Demo ====="
+
+                    def projectName = "Selenium CI/CD"
+                    def version = "1.0"
+
+                    echo "Project : ${projectName}"
+                    echo "Version : ${version}"
+
+                    def browsers = ["Chrome", "Edge"]
+
+                    for(browser in browsers){
+
+                        echo "Supported Browser : ${browser}"
+
+                    }
+
+                    def buildMessage(name){
+
+                        return "Welcome to ${name}"
+
+                    }
+
+                    echo buildMessage(projectName)
+
+                    try{
+
+                        echo "Executing Groovy Logic"
+
+                        int value = 100
+
+                        echo "Value = ${value}"
+
+                    }
+                    catch(Exception ex){
+
+                        echo "Exception : ${ex.getMessage()}"
+
+                    }
+                    finally{
+
+                        echo "Script Block Completed"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        stage('Build & Execute Tests') {
+
+            tools {
+
+                maven 'Name Maven-3.9.9'
+
+            }
+
+            environment {
+
+                TEST_OWNER="Automation Team"
+
+            }
+
+            steps {
+
+                echo "Stage Owner : ${TEST_OWNER}"
+
+                retry(2){
 
                     bat """
                     mvn ${env.MAVEN_GOAL} ^
@@ -151,11 +245,21 @@ pipeline {
 
         stage('Archive Artifacts') {
 
+            when {
+
+                expression {
+
+                    params.Suite=="Smoke"
+
+                }
+
+            }
+
             steps {
 
                 archiveArtifacts(
-                    artifacts: 'target/**/*',
-                    fingerprint: true
+                    artifacts:'target/**/*',
+                    fingerprint:true
                 )
 
             }
@@ -167,17 +271,99 @@ pipeline {
             steps {
 
                 withCredentials([
+
                     string(
-                        credentialsId: 'dummy-api-key',
-                        variable: 'API_KEY'
+                        credentialsId:'dummy-api-key',
+                        variable:'API_KEY'
                     )
+
                 ]) {
 
-                    echo "Credential loaded successfully."
+                    echo "Credential Loaded Successfully"
 
                     bat '''
-                    echo Credential retrieved successfully.
+                    echo Secret Credential Used
                     '''
+
+                }
+
+            }
+
+        }
+
+        stage('Manual Approval') {
+
+            input {
+
+                message "Continue Pipeline?"
+
+                ok "Proceed"
+
+            }
+
+            steps {
+
+                echo "Pipeline Approved"
+
+            }
+
+        }
+
+        stage('Parallel Demo') {
+
+            parallel {
+
+                stage('Chrome Validation') {
+
+                    steps {
+
+                        echo "Chrome Stage Running"
+
+                    }
+
+                }
+
+                stage('Edge Validation') {
+
+                    steps {
+
+                        echo "Edge Stage Running"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        stage('Matrix Demo') {
+
+            matrix {
+
+                axes {
+
+                    axis {
+
+                        name 'BrowserName'
+
+                        values 'Chrome','Edge'
+
+                    }
+
+                }
+
+                stages {
+
+                    stage('Matrix Execution') {
+
+                        steps {
+
+                            echo "Running on ${BrowserName}"
+
+                        }
+
+                    }
 
                 }
 
@@ -190,11 +376,11 @@ pipeline {
             steps {
 
                 stash(
-                    name: 'project-files',
-                    includes: 'target/**/*'
+                    name:'project-files',
+                    includes:'target/**/*'
                 )
 
-                echo "Target folder stashed successfully."
+                echo "Files Stashed"
 
             }
 
@@ -208,7 +394,7 @@ pipeline {
 
                 unstash 'project-files'
 
-                echo "Target folder restored successfully."
+                echo "Files Restored"
 
             }
 
@@ -220,19 +406,19 @@ pipeline {
 
         always {
 
-            echo "Pipeline execution completed."
+            echo "Pipeline Execution Completed"
 
         }
 
         success {
 
-            echo "Build completed successfully."
+            echo "Build Completed Successfully"
 
         }
 
         failure {
 
-            echo "Build failed."
+            echo "Build Failed"
 
         }
 
