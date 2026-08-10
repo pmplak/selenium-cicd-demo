@@ -215,6 +215,22 @@ pipeline {
 
         }
 
+        /*
+         * Sprint 24
+         *
+         * Test execution is allowed to complete even when
+         * automated tests fail.
+         *
+         * This allows:
+         *
+         * 1. JUnit results to be published
+         * 2. Custom HTML report to be generated
+         * 3. Quality Gate to make the final decision
+         *
+         * Test failure => UNSTABLE
+         * Infrastructure/build failure => FAILURE
+         */
+
         stage('Build & Execute Tests') {
 
             tools {
@@ -233,15 +249,22 @@ pipeline {
 
                 echo "Stage Owner : ${TEST_OWNER}"
 
-                retry(2) {
+                catchError(
+                    buildResult: 'UNSTABLE',
+                    stageResult: 'FAILURE'
+                ) {
 
-                    bat """
-                    mvn ${env.MAVEN_GOAL} ^
-                    -Denvironment=${params.Environment} ^
-                    -Dbrowser=${params.Browser} ^
-                    -Dsuite=${params.Suite} ^
-                    -Dheadless=${params.Headless}
-                    """
+                    retry(2) {
+
+                        bat """
+                        mvn ${env.MAVEN_GOAL} ^
+                        -Denvironment=${params.Environment} ^
+                        -Dbrowser=${params.Browser} ^
+                        -Dsuite=${params.Suite} ^
+                        -Dheadless=${params.Headless}
+                        """
+
+                    }
 
                 }
 
@@ -253,7 +276,10 @@ pipeline {
 
             steps {
 
-                junit 'target/surefire-reports/*.xml'
+                junit(
+                    testResults: 'target/surefire-reports/*.xml',
+                    allowEmptyResults: false
+                )
 
             }
 
@@ -265,12 +291,9 @@ pipeline {
          * The Selenium framework itself generates
          * the custom HTML report.
          *
-         * Report location:
+         * Report:
          *
          * target/custom-report/index.html
-         *
-         * No separate Maven Surefire HTML report
-         * generation is required.
          */
 
         stage('Verify Custom HTML Report') {
@@ -291,13 +314,6 @@ pipeline {
             }
 
         }
-
-        /*
-         * Sprint 23
-         *
-         * Publish the project-specific Selenium
-         * automation report inside Jenkins.
-         */
 
         stage('Publish Custom HTML Report') {
 
@@ -343,10 +359,65 @@ pipeline {
         }
 
         /*
+         * Sprint 24
+         *
+         * QUALITY GATE
+         *
+         * Test results and reports are generated first.
+         * Only after that do we decide whether the
+         * pipeline is allowed to continue.
+         *
+         * SUCCESS  -> Continue
+         * UNSTABLE -> Stop
+         * FAILURE  -> Stop
+         */
+
+        stage('Quality Gate') {
+
+            steps {
+
+                script {
+
+                    echo "===================================="
+                    echo "Executing Quality Gate"
+                    echo "Current Build Result : ${currentBuild.currentResult}"
+                    echo "===================================="
+
+                    if (currentBuild.currentResult != 'SUCCESS') {
+
+                        echo "===================================="
+                        echo "QUALITY GATE FAILED"
+                        echo "Build Result : ${currentBuild.currentResult}"
+                        echo "Deployment will be blocked."
+                        echo "===================================="
+
+                        error(
+                            "Quality Gate Failed - Automated tests did not pass."
+                        )
+
+                    }
+
+                    echo "===================================="
+                    echo "QUALITY GATE PASSED"
+                    echo "All automated tests passed."
+                    echo "Pipeline may continue."
+                    echo "===================================="
+
+                }
+
+            }
+
+        }
+
+        /*
          * Sprint 22
          *
          * Production approval is required
          * only for PROD.
+         *
+         * QA  -> No approval
+         * UAT  -> No approval
+         * PROD -> Approval
          */
 
         stage('Production Approval') {
@@ -380,12 +451,15 @@ pipeline {
         }
 
         /*
-         * Sprint 22
+         * Sprint 21 + Sprint 22
          *
          * Deploy only when:
          *
          * Environment != QA
          * Branch == main
+         *
+         * Sprint 24 Quality Gate is positioned
+         * before this stage.
          */
 
         stage('Deploy') {
@@ -573,6 +647,12 @@ pipeline {
         failure {
 
             echo "Build Failed"
+
+        }
+
+        unstable {
+
+            echo "Build Marked UNSTABLE"
 
         }
 
