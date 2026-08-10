@@ -2946,3 +2946,536 @@ Completed
 - Declarative vs Scripted Pipeline
 
 ---
+
+---
+
+# Sprint 21 – Enterprise Multi-Stage Deployment Pipeline
+
+## Learning Objectives
+
+Transform a basic Jenkins Pipeline into an enterprise deployment pipeline by introducing conditional deployments, manual approvals, reusable deployment functions, and stage-level post actions.
+
+---
+
+## Topics Covered
+
+### Enterprise Deployment Flow
+
+Unlike development pipelines that simply build and test the application, enterprise pipelines also control how deployments are performed across different environments.
+
+Pipeline Flow
+
+```
+Build
+
+↓
+
+Execute Tests
+
+↓
+
+Publish Reports
+
+↓
+
+Archive Artifacts
+
+↓
+
+Deployment Decision
+
+↓
+
+QA / UAT / PROD
+
+↓
+
+Manual Approval (PROD)
+
+↓
+
+Deployment
+
+↓
+
+Cleanup
+```
+
+---
+
+## Deploy Stage
+
+Implemented
+
+```groovy
+stage('Deploy') {
+
+    when {
+
+        expression {
+
+            params.Environment != 'QA'
+
+        }
+
+    }
+
+    steps {
+
+        script {
+
+            ...
+
+        }
+
+    }
+
+}
+```
+
+Purpose
+
+Introduce a dedicated deployment stage that executes only when deployment is required.
+
+---
+
+## Conditional Deployment
+
+Pipeline
+
+```groovy
+when {
+
+    expression {
+
+        params.Environment != 'QA'
+
+    }
+
+}
+```
+
+Execution Flow
+
+```
+Environment
+
+↓
+
+QA
+
+↓
+
+Skip Deployment
+
+-----------------
+
+UAT
+
+↓
+
+Deploy
+
+-----------------
+
+PROD
+
+↓
+
+Deploy
+```
+
+Purpose
+
+Prevent unnecessary deployments during QA execution.
+
+---
+
+## Manual Approval
+
+Pipeline
+
+```groovy
+if(params.Environment=="PROD"){
+
+    input(
+
+        message:"Approve Production Deployment?",
+
+        ok:"Deploy"
+
+    )
+
+}
+```
+
+Execution Flow
+
+```
+PROD
+
+↓
+
+Pause Pipeline
+
+↓
+
+Approval Required
+
+↓
+
+Deploy
+```
+
+Purpose
+
+Prevent accidental production deployments.
+
+Enterprise Usage
+
+- CAB Approval
+- Release Manager Approval
+- Production Change Window
+- Business Approval
+
+---
+
+## Automatic Deployment
+
+For UAT
+
+```
+Environment
+
+↓
+
+UAT
+
+↓
+
+Automatic Deployment
+```
+
+Purpose
+
+Allow continuous deployment to testing environments.
+
+---
+
+## Reusable Deployment Function
+
+Created
+
+```groovy
+def deployApplication(String environmentName){
+
+    echo "===================================="
+
+    echo "Starting Deployment"
+
+    echo "Target Environment : ${environmentName}"
+
+    echo "Deployment Started..."
+
+    echo "Deployment Completed Successfully."
+
+    echo "===================================="
+
+}
+```
+
+Usage
+
+```groovy
+deployApplication(params.Environment)
+```
+
+Benefits
+
+- Reusable
+- Cleaner Jenkinsfile
+- Easier maintenance
+- Reduced duplication
+
+---
+
+## Why Use Functions?
+
+Without Function
+
+```groovy
+echo "Deploy..."
+
+echo "Deploy..."
+
+echo "Deploy..."
+```
+
+With Function
+
+```groovy
+deployApplication("QA")
+
+deployApplication("UAT")
+
+deployApplication("PROD")
+```
+
+Purpose
+
+Centralize deployment logic.
+
+---
+
+## Stage-Level Post Actions
+
+Implemented
+
+```groovy
+post {
+
+    success {
+
+        echo "Deployment Successful"
+
+    }
+
+    failure {
+
+        echo "Deployment Failed"
+
+    }
+
+}
+```
+
+Purpose
+
+Execute actions specific to the Deploy stage.
+
+Difference
+
+Pipeline Post
+
+```
+Runs once after the entire pipeline.
+```
+
+Stage Post
+
+```
+Runs only after that stage.
+```
+
+---
+
+## Deployment Flow
+
+```
+Build
+
+↓
+
+Tests
+
+↓
+
+Reports
+
+↓
+
+Artifacts
+
+↓
+
+Deploy Stage
+
+        │
+
+        ├──────────────┐
+
+        │              │
+
+       QA             UAT
+
+        │              │
+
+     Skip          Deploy
+
+                       │
+
+                    Success
+
+        │
+
+        └──────────────┐
+
+                       │
+
+                     PROD
+
+                       │
+
+              Manual Approval
+
+                       │
+
+                  Deploy
+
+                       │
+
+                Deployment Success
+```
+
+---
+
+## Validation Performed
+
+### QA Execution
+
+Result
+
+```
+Deploy Stage
+
+↓
+
+Skipped
+```
+
+Verified Successfully
+
+---
+
+### UAT Execution
+
+Console
+
+```
+====================================
+
+Starting Deployment
+
+Target Environment : UAT
+
+Deployment Started...
+
+Deployment Completed Successfully.
+
+====================================
+```
+
+Verified Successfully
+
+---
+
+### PROD Execution
+
+Console
+
+```
+Approve Production Deployment?
+```
+
+After Approval
+
+```
+====================================
+
+Starting Deployment
+
+Target Environment : PROD
+
+Deployment Started...
+
+Deployment Completed Successfully.
+
+====================================
+```
+
+Verified Successfully
+
+---
+
+## Enterprise Benefits
+
+- Controlled Deployments
+- Production Approval
+- Environment-Based Deployment
+- Reusable Deployment Logic
+- Stage Isolation
+- Cleaner Pipeline
+
+---
+
+## Best Practices
+
+✔ Never deploy QA automatically.
+
+✔ Always require approval before Production deployment.
+
+✔ Keep deployment logic inside reusable functions.
+
+✔ Use stage-level post actions.
+
+✔ Separate Build, Test and Deploy responsibilities.
+
+✔ Avoid duplicate deployment code.
+
+---
+
+## Common Interview Questions
+
+### Q1. Why use the `when` condition?
+
+Answer
+
+To conditionally execute a stage based on runtime values such as environment, branch or build parameters.
+
+---
+
+### Q2. Why use `input`?
+
+Answer
+
+To pause pipeline execution until manual approval is provided.
+
+Mostly used before Production deployment.
+
+---
+
+### Q3. Why create a deployment function?
+
+Answer
+
+To avoid duplicate deployment logic and improve maintainability.
+
+---
+
+### Q4. Difference between Pipeline Post and Stage Post?
+
+Pipeline Post
+
+Runs once after the entire pipeline.
+
+Stage Post
+
+Runs only after a specific stage completes.
+
+---
+
+## Sprint Summary
+
+Completed
+
+- Enterprise Deployment Stage
+- Conditional Deployment
+- when Expression
+- Manual Approval
+- input Step
+- Reusable Deployment Function
+- Stage-Level Post Actions
+- Environment-Based Deployment
+- Enterprise Deployment Flow
+
+---

@@ -36,7 +36,9 @@ pipeline {
     }
 
     tools {
+
         maven 'Name Maven-3.9.9'
+
     }
 
     environment {
@@ -52,19 +54,19 @@ pipeline {
 
         choice(
             name: 'Environment',
-            choices: ['QA','UAT','PROD'],
+            choices: ['QA', 'UAT', 'PROD'],
             description: 'Select Environment'
         )
 
         choice(
             name: 'Browser',
-            choices: ['Chrome','Edge'],
+            choices: ['Chrome', 'Edge'],
             description: 'Select Browser'
         )
 
         choice(
             name: 'Suite',
-            choices: ['Smoke','Regression'],
+            choices: ['Smoke', 'Regression'],
             description: 'Select Test Suite'
         )
 
@@ -86,6 +88,7 @@ pipeline {
                 echo "Build Owner : ${env.BUILD_OWNER}"
                 echo "Repository  : ${env.REPOSITORY}"
                 echo "Branch      : ${env.GIT_BRANCH}"
+                echo "Maven Goal  : ${env.MAVEN_GOAL}"
                 echo "================================="
 
             }
@@ -135,12 +138,12 @@ pipeline {
 
                 script {
 
-                    if(params.Browser=="Chrome"){
+                    if (params.Browser == "Chrome") {
 
                         echo "Executing Chrome Tests"
 
                     }
-                    else{
+                    else {
 
                         echo "Executing Edge Tests"
 
@@ -151,7 +154,6 @@ pipeline {
             }
 
         }
-
 
         stage('Scripted Pipeline Demo') {
 
@@ -169,7 +171,7 @@ pipeline {
 
                     def browsers = ["Chrome", "Edge"]
 
-                    for(browser in browsers){
+                    for (browser in browsers) {
 
                         echo "Supported Browser : ${browser}"
 
@@ -183,7 +185,7 @@ pipeline {
 
                     echo buildMessage(projectName)
 
-                    try{
+                    try {
 
                         echo "Executing Groovy Logic"
 
@@ -192,12 +194,12 @@ pipeline {
                         echo "Value = ${value}"
 
                     }
-                    catch(Exception ex){
+                    catch (Exception ex) {
 
                         echo "Exception : ${ex.getMessage()}"
 
                     }
-                    finally{
+                    finally {
 
                         echo "Script Block Completed"
 
@@ -209,7 +211,6 @@ pipeline {
 
         }
 
-
         stage('Build & Execute Tests') {
 
             tools {
@@ -220,7 +221,7 @@ pipeline {
 
             environment {
 
-                TEST_OWNER="Automation Team"
+                TEST_OWNER = "Automation Team"
 
             }
 
@@ -228,7 +229,7 @@ pipeline {
 
                 echo "Stage Owner : ${TEST_OWNER}"
 
-                retry(2){
+                retry(2) {
 
                     bat """
                     mvn ${env.MAVEN_GOAL} ^
@@ -260,7 +261,7 @@ pipeline {
 
                 expression {
 
-                    params.Suite=="Smoke"
+                    params.Suite == "Smoke"
 
                 }
 
@@ -269,13 +270,63 @@ pipeline {
             steps {
 
                 archiveArtifacts(
-                    artifacts:'target/**/*',
-                    fingerprint:true
+                    artifacts: 'target/**/*',
+                    fingerprint: true
                 )
 
             }
 
         }
+
+        /*
+         * Sprint 22
+         *
+         * Production approval is separated
+         * from the actual deployment stage.
+         *
+         * QA  -> No approval
+         * UAT  -> No approval
+         * PROD -> Manual approval
+         */
+
+        stage('Production Approval') {
+
+            when {
+
+                beforeInput true
+
+                expression {
+
+                    params.Environment == 'PROD'
+
+                }
+
+            }
+
+            input {
+
+                message 'Approve Production Deployment?'
+
+                ok 'Approve'
+
+            }
+
+            steps {
+
+                echo 'Production deployment approved.'
+
+            }
+
+        }
+
+        /*
+         * Sprint 21 + Sprint 22
+         *
+         * Deployment happens only when:
+         *
+         * 1. Environment is not QA
+         * 2. Pipeline branch is main
+         */
 
         stage('Deploy') {
 
@@ -284,11 +335,15 @@ pipeline {
                 allOf {
 
                     expression {
+
                         params.Environment != 'QA'
+
                     }
 
                     expression {
+
                         env.GIT_BRANCH == 'main'
+
                     }
 
                 }
@@ -298,15 +353,6 @@ pipeline {
             steps {
 
                 script {
-
-                    if (params.Environment == 'PROD') {
-
-                        input(
-                            message: 'Approve Production Deployment?',
-                            ok: 'Deploy'
-                        )
-
-                    }
 
                     deployApplication(params.Environment)
 
@@ -339,8 +385,8 @@ pipeline {
                 withCredentials([
 
                     string(
-                        credentialsId:'dummy-api-key',
-                        variable:'API_KEY'
+                        credentialsId: 'dummy-api-key',
+                        variable: 'API_KEY'
                     )
 
                 ]) {
@@ -352,24 +398,6 @@ pipeline {
                     '''
 
                 }
-
-            }
-
-        }
-
-        stage('Manual Approval') {
-
-            input {
-
-                message "Continue Pipeline?"
-
-                ok "Proceed"
-
-            }
-
-            steps {
-
-                echo "Pipeline Approved"
 
             }
 
@@ -413,7 +441,7 @@ pipeline {
 
                         name 'BrowserName'
 
-                        values 'Chrome','Edge'
+                        values 'Chrome', 'Edge'
 
                     }
 
@@ -442,8 +470,8 @@ pipeline {
             steps {
 
                 stash(
-                    name:'project-files',
-                    includes:'target/**/*'
+                    name: 'project-files',
+                    includes: 'target/**/*'
                 )
 
                 echo "Files Stashed"
