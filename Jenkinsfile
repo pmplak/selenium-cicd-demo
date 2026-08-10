@@ -281,9 +281,15 @@ pipeline {
 
             when {
 
-                expression {
+                allOf {
 
-                    params.Environment != 'QA'
+                    expression {
+                        params.Environment != 'QA'
+                    }
+
+                    expression {
+                        env.GIT_BRANCH == 'main'
+                    }
 
                 }
 
@@ -293,7 +299,7 @@ pipeline {
 
                 script {
 
-                    if(params.Environment == 'PROD') {
+                    if (params.Environment == 'PROD') {
 
                         input(
                             message: 'Approve Production Deployment?',
