@@ -3479,3 +3479,58 @@ Completed
 - Enterprise Deployment Flow
 
 ---
+
+# Sprint 22 – Advanced Conditional Pipeline Control
+
+## Learning Objectives
+
+Enhance the enterprise Jenkins Pipeline by introducing advanced conditional execution, multiple deployment conditions, environment-based deployment, Production approval control, `beforeInput`, separation of approval from deployment, and SCM-based Jenkinsfile validation.
+
+---
+
+## Topics Covered
+
+### Advanced Conditional Deployment
+
+Sprint 22 extends the Sprint 21 deployment pipeline by adding multiple conditions that determine whether deployment should occur.
+
+Pipeline Flow
+
+```text
+Build
+
+↓
+
+Execute Tests
+
+↓
+
+Publish Reports
+
+↓
+
+Archive Artifacts
+
+↓
+
+Evaluate Deployment Conditions
+
+↓
+
+QA / UAT / PROD
+
+↓
+
+Production Approval (PROD)
+
+↓
+
+Deployment
+
+↓
+
+Stage Post Actions
+
+↓
+
+Pipeline Completion

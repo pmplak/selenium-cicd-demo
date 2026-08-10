@@ -255,6 +255,52 @@ pipeline {
 
         }
 
+        /*
+         * Sprint 23
+         *
+         * Generate HTML test report from
+         * Maven Surefire results.
+         */
+
+        stage('Generate HTML Report') {
+
+            steps {
+
+                bat """
+                mvn surefire-report:report-only
+                """
+
+            }
+
+        }
+
+        /*
+         * Sprint 23
+         *
+         * Publish the generated HTML report
+         * inside Jenkins.
+         */
+
+        stage('Publish HTML Report') {
+
+            steps {
+
+                publishHTML(
+                    target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/reports',
+                        reportFiles: 'surefire.html',
+                        reportName: 'Selenium Test Report',
+                        reportTitles: 'Selenium Automation Test Report'
+                    ]
+                )
+
+            }
+
+        }
+
         stage('Archive Artifacts') {
 
             when {
@@ -281,12 +327,8 @@ pipeline {
         /*
          * Sprint 22
          *
-         * Production approval is separated
-         * from the actual deployment stage.
-         *
-         * QA  -> No approval
-         * UAT  -> No approval
-         * PROD -> Manual approval
+         * Production approval is required
+         * only for PROD.
          */
 
         stage('Production Approval') {
@@ -320,12 +362,12 @@ pipeline {
         }
 
         /*
-         * Sprint 21 + Sprint 22
+         * Sprint 22
          *
-         * Deployment happens only when:
+         * Deploy only when:
          *
-         * 1. Environment is not QA
-         * 2. Pipeline branch is main
+         * Environment != QA
+         * Branch == main
          */
 
         stage('Deploy') {
