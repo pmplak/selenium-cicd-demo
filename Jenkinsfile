@@ -379,28 +379,58 @@ pipeline {
                 script {
 
                     echo "===================================="
-                    echo "Executing Quality Gate"
+                    echo "Sprint 25 - Quality Gate"
+                    echo "Environment : ${params.Environment}"
                     echo "Current Build Result : ${currentBuild.currentResult}"
                     echo "===================================="
 
                     if (currentBuild.currentResult != 'SUCCESS') {
 
-                        echo "===================================="
-                        echo "QUALITY GATE FAILED"
-                        echo "Build Result : ${currentBuild.currentResult}"
-                        echo "Deployment will be blocked."
-                        echo "===================================="
+                        if (params.Environment == 'QA') {
 
-                        error(
-                            "Quality Gate Failed - Automated tests did not pass."
-                        )
+                            error(
+                                "QA Quality Gate Failed - Automated tests did not pass."
+                            )
+
+                        }
+                        else if (params.Environment == 'UAT') {
+
+                            error(
+                                "UAT Quality Gate Failed - UAT deployment is blocked."
+                            )
+
+                        }
+                        else if (params.Environment == 'PROD') {
+
+                            error(
+                                "PROD Quality Gate Failed - Production deployment is blocked."
+                            )
+
+                        }
+
+                    }
+
+                    if (params.Environment == 'QA') {
+
+                        echo "QA Quality Gate PASSED"
+                        echo "QA deployment is not applicable."
+
+                    }
+                    else if (params.Environment == 'UAT') {
+
+                        echo "UAT Quality Gate PASSED"
+                        echo "UAT deployment is allowed."
+
+                    }
+                    else if (params.Environment == 'PROD') {
+
+                        echo "PROD Quality Gate PASSED"
+                        echo "Production approval can proceed."
 
                     }
 
                     echo "===================================="
-                    echo "QUALITY GATE PASSED"
-                    echo "All automated tests passed."
-                    echo "Pipeline may continue."
+                    echo "Quality Gate Completed Successfully"
                     echo "===================================="
 
                 }
