@@ -1,7 +1,6 @@
 package saucelab;
 
 import java.time.Duration;
-import java.util.logging.Logger;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -15,62 +14,175 @@ import org.testng.annotations.Test;
 
 public class LoginAndVerifyTest {
 
-    static Logger logger = Logger.getLogger(LoginAndVerifyTest.class.getName());
-
     @Test
-    public void loginTest() throws InterruptedException {
+    public void loginTest()
+            throws InterruptedException {
 
-        String environment = System.getProperty("environment");
-        String browser = System.getProperty("browser");
-        String suite = System.getProperty("suite");
-        String headless = System.getProperty("headless");
+        String environment =
+                System.getProperty("environment");
 
-        System.out.println("Environment : " + environment);
-        System.out.println("Browser     : " + browser);
-        System.out.println("Suite       : " + suite);
-        System.out.println("Headless    : " + headless);
+        String browser =
+                System.getProperty("browser");
 
-        ChromeOptions options = new ChromeOptions();
+        String suite =
+                System.getProperty("suite");
 
-        if ("true".equalsIgnoreCase(System.getProperty("headless"))) {
-            options.addArguments("--headless=new");
-        }
+        String headless =
+                System.getProperty("headless");
 
-        options.addArguments("--start-maximized");
-        options.addArguments("--disable-notifications");
-
-        WebDriver driver = new ChromeDriver(options);
+        WebDriver driver = null;
 
         try {
 
-            driver.navigate().to("https://www.saucedemo.com");
+            ChromeOptions options =
+                    new ChromeOptions();
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            if ("true".equalsIgnoreCase(headless)) {
 
-            WebElement userName = wait.until(
-                    ExpectedConditions.visibilityOfElementLocated(By.id("user-name")));
-            userName.sendKeys("standard_user");
+                options.addArguments(
+                        "--headless=new");
+            }
 
-            WebElement passWord = wait.until(
-                    ExpectedConditions.visibilityOfElementLocated(By.id("password")));
-            passWord.sendKeys("secret_sauce");
+            options.addArguments(
+                    "--start-maximized");
 
-            Thread.sleep(5000);
+            options.addArguments(
+                    "--disable-notifications");
 
-            driver.findElement(By.id("login-button")).click();
+            driver =
+                    new ChromeDriver(options);
 
-            String actualText = driver.findElement(By.xpath("//span[.='Products']")).getText();
+            WebDriverWait wait =
+                    new WebDriverWait(
+                            driver,
+                            Duration.ofSeconds(30));
 
-            Thread.sleep(5000);
+            CustomReportManager.logStep(
+                    "Open SauceDemo application",
+                    "SauceDemo login page should be displayed",
+                    "SauceDemo login page opened",
+                    "PASS");
 
-            Assert.assertEquals(actualText, "Products");
+            driver.navigate().to(
+                    "https://www.saucedemo.com");
 
-            logger.info("PASS : Successfully landed on Products page");
+            CustomReportManager.logStep(
+                    "Enter username",
+                    "Username should be accepted",
+                    "Username entered: standard_user",
+                    "PASS");
 
-        } finally {
+            WebElement userName =
+                    wait.until(
+                        ExpectedConditions
+                            .visibilityOfElementLocated(
+                                By.id("user-name")));
 
-            driver.quit();
+            userName.sendKeys(
+                    "standard_user");
 
+            CustomReportManager.logStep(
+                    "Enter password",
+                    "Password should be accepted",
+                    "Password entered successfully",
+                    "PASS");
+
+            WebElement passWord =
+                    wait.until(
+                        ExpectedConditions
+                            .visibilityOfElementLocated(
+                                By.id("password")));
+
+            passWord.sendKeys(
+                    "secret_sauce");
+
+            CustomReportManager.logStep(
+                    "Click Login button",
+                    "User should be logged in",
+                    "Login button clicked",
+                    "PASS");
+
+            driver.findElement(
+                    By.id("login-button"))
+                    .click();
+
+            CustomReportManager.logStep(
+                    "Verify Products page",
+                    "Products",
+                    driver.findElement(
+                            By.xpath(
+                                "//span[.='Products']"))
+                        .getText(),
+                    "PASS");
+
+            String actualText =
+                    wait.until(
+                        ExpectedConditions
+                            .visibilityOfElementLocated(
+                                By.xpath(
+                                    "//span[.='Products']")))
+                    .getText();
+
+            try {
+
+                Assert.assertEquals(
+                        actualText,
+                        "Products");
+
+            }
+            catch (AssertionError e) {
+
+                CustomReportManager.failTest(
+                        "Verify Products page",
+                        "Products",
+                        actualText,
+                        driver);
+
+                throw e;
+            }
+
+            System.out.println(
+                    "Environment : "
+                    + environment);
+
+            System.out.println(
+                    "Browser     : "
+                    + browser);
+
+            System.out.println(
+                    "Suite       : "
+                    + suite);
+
+            System.out.println(
+                    "Headless    : "
+                    + headless);
+
+        }
+        catch (AssertionError e) {
+
+            throw e;
+
+        }
+        catch (Exception e) {
+
+            if (driver != null) {
+
+                CustomReportManager.failTest(
+                        "Unexpected test failure",
+                        "Test should execute successfully",
+                        e.getMessage(),
+                        driver);
+            }
+
+            throw e;
+
+        }
+        finally {
+
+            if (driver != null) {
+
+                driver.quit();
+            }
         }
     }
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE suite SYSTEM
+        "https://testng.org/testng-1.0.dtd">
+
+<suite name="SauceDemo Test Suite">
+
+    <listeners>
+
+        <listener
+            class-name="saucelab.CustomReportListener"/>
+
+    </listeners>
+
+    <test name="SauceDemo Tests">
+
+        <packages>
+
+            <package name="saucelab"/>
+
+        </packages>
+
+    </test>
+
+</suite>

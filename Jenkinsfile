@@ -89,6 +89,10 @@ pipeline {
                 echo "Repository  : ${env.REPOSITORY}"
                 echo "Branch      : ${env.GIT_BRANCH}"
                 echo "Maven Goal  : ${env.MAVEN_GOAL}"
+                echo "Environment : ${params.Environment}"
+                echo "Browser     : ${params.Browser}"
+                echo "Suite       : ${params.Suite}"
+                echo "Headless    : ${params.Headless}"
                 echo "================================="
 
             }
@@ -258,16 +262,30 @@ pipeline {
         /*
          * Sprint 23
          *
-         * Generate HTML test report from
-         * Maven Surefire results.
+         * The Selenium framework itself generates
+         * the custom HTML report.
+         *
+         * Report location:
+         *
+         * target/custom-report/index.html
+         *
+         * No separate Maven Surefire HTML report
+         * generation is required.
          */
 
-        stage('Generate HTML Report') {
+        stage('Verify Custom HTML Report') {
 
             steps {
 
                 bat """
-                mvn surefire-report:report-only
+                if not exist target\\custom-report\\index.html (
+                    echo Custom HTML report was not generated.
+                    exit /b 1
+                )
+
+                echo Custom HTML report found successfully.
+                echo Report Location:
+                echo target\\custom-report\\index.html
                 """
 
             }
@@ -277,11 +295,11 @@ pipeline {
         /*
          * Sprint 23
          *
-         * Publish the generated HTML report
-         * inside Jenkins.
+         * Publish the project-specific Selenium
+         * automation report inside Jenkins.
          */
 
-        stage('Publish HTML Report') {
+        stage('Publish Custom HTML Report') {
 
             steps {
 
@@ -290,10 +308,10 @@ pipeline {
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'target/reports',
-                        reportFiles: 'surefire.html',
-                        reportName: 'Selenium Test Report',
-                        reportTitles: 'Selenium Automation Test Report'
+                        reportDir: 'target/custom-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Custom Selenium Automation Report',
+                        reportTitles: 'SauceDemo Automation Execution Report'
                     ]
                 )
 
