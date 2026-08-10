@@ -125,7 +125,10 @@ public class LoginAndVerifyTest {
 
             try {
 
-                Assert.assertEquals(actualText, "WRONG_PRODUCTS");
+                Assert.assertEquals(
+                        actualText,
+                        "Products");
+
             }
             catch (AssertionError e) {
 
