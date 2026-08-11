@@ -672,17 +672,83 @@ pipeline {
 
             echo "Build Completed Successfully"
 
+            emailext(
+                subject: "SUCCESS - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Jenkins Build Successful</h2>
+
+                <p><b>Project:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Environment:</b> ${params.Environment}</p>
+                <p><b>Browser:</b> ${params.Browser}</p>
+                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Status:</b> SUCCESS</p>
+
+                <p>
+                    <a href="${env.BUILD_URL}">
+                        Open Jenkins Build
+                    </a>
+                </p>
+                """,
+                mimeType: 'text/html',
+                to: 'pmplak0123@gmail.com'
+            )
+
         }
 
         failure {
 
             echo "Build Failed"
 
+            emailext(
+                subject: "FAILURE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Jenkins Build Failed</h2>
+
+                <p><b>Project:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Environment:</b> ${params.Environment}</p>
+                <p><b>Browser:</b> ${params.Browser}</p>
+                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Status:</b> FAILURE</p>
+
+                <p>
+                    <a href="${env.BUILD_URL}">
+                        Open Jenkins Build
+                    </a>
+                </p>
+                """,
+                mimeType: 'text/html',
+                to: 'pmplak0123@gmail.com'
+            )
+
         }
 
         unstable {
 
             echo "Build Marked UNSTABLE"
+
+            emailext(
+                subject: "UNSTABLE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+                body: """
+                <h2>Jenkins Build Unstable</h2>
+
+                <p><b>Project:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Environment:</b> ${params.Environment}</p>
+                <p><b>Browser:</b> ${params.Browser}</p>
+                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Status:</b> UNSTABLE</p>
+
+                <p>
+                    <a href="${env.BUILD_URL}">
+                        Open Jenkins Build
+                    </a>
+                </p>
+                """,
+                mimeType: 'text/html',
+                to: 'pmplak0123@gmail.com'
+            )
 
         }
 
