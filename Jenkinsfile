@@ -62,21 +62,6 @@ pipeline {
         GIT_BRANCH  = 'main'
         REPOSITORY  = 'git@github.com:pmplak/selenium-cicd-demo.git'
         MAVEN_GOAL  = 'clean test'
-
-        /*
-         * Sprint 31
-         *
-         * These contain the ACTUAL configuration
-         * that the pipeline decides to execute.
-         */
-         environment {
-
-            BUILD_OWNER = 'Petchimuthu Pandiyan'
-            GIT_BRANCH  = 'main'
-            REPOSITORY  = 'git@github.com:pmplak/selenium-cicd-demo.git'
-            MAVEN_GOAL  = 'clean test'
-        }
-
     }
 
 
