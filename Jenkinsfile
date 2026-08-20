@@ -6,8 +6,8 @@ def deployApplication(String environmentName) {
     echo "Deployment Started..."
     echo "Deployment Completed Successfully."
     echo "===================================="
-
 }
+
 
 pipeline {
 
@@ -32,20 +32,29 @@ pipeline {
         )
 
         skipDefaultCheckout()
-
     }
+
+
+    /*
+     * Sprint 30 / Sprint 31
+     *
+     * Temporary timer used for learning.
+     *
+     * Jenkins executes approximately every 5 minutes
+     * regardless of whether Git changed.
+     */
 
     triggers {
 
-    cron('H/5 * * * *')
-
+        cron('H/5 * * * *')
     }
+
 
     tools {
 
         maven 'Name Maven-3.9.9'
-
     }
+
 
     environment {
 
@@ -54,7 +63,21 @@ pipeline {
         REPOSITORY  = 'git@github.com:pmplak/selenium-cicd-demo.git'
         MAVEN_GOAL  = 'clean test'
 
+        /*
+         * Sprint 31
+         *
+         * These contain the ACTUAL configuration
+         * that the pipeline decides to execute.
+         */
+
+        RUN_ENVIRONMENT = ''
+        RUN_BROWSER     = ''
+        RUN_SUITE       = ''
+        RUN_HEADLESS    = ''
+
+        BUILD_TRIGGER   = ''
     }
+
 
     parameters {
 
@@ -81,10 +104,84 @@ pipeline {
             defaultValue: true,
             description: 'Run Browser Headless'
         )
-
     }
 
+
     stages {
+
+
+        /*
+         * Sprint 31
+         *
+         * Determine HOW Jenkins started this build.
+         *
+         * TIMER:
+         * Use predefined nightly/scheduled configuration.
+         *
+         * MANUAL / SCM / WEBHOOK:
+         * Use values supplied through Jenkins parameters.
+         */
+
+        stage('Resolve Execution Configuration') {
+
+            steps {
+
+                script {
+
+                    def timerCauses =
+                        currentBuild.getBuildCauses(
+                            'hudson.triggers.TimerTrigger$TimerTriggerCause'
+                        )
+
+                    if (timerCauses != null
+                            && !timerCauses.isEmpty()) {
+
+                        env.BUILD_TRIGGER = 'TIMER'
+
+                        /*
+                         * Scheduled execution policy
+                         */
+
+                        env.RUN_ENVIRONMENT = 'QA'
+                        env.RUN_BROWSER     = 'Chrome'
+                        env.RUN_SUITE       = 'Regression'
+                        env.RUN_HEADLESS    = 'true'
+                    }
+                    else {
+
+                        env.BUILD_TRIGGER = 'MANUAL / SCM / WEBHOOK'
+
+                        /*
+                         * Interactive / source-triggered execution
+                         */
+
+                        env.RUN_ENVIRONMENT =
+                            params.Environment
+
+                        env.RUN_BROWSER =
+                            params.Browser
+
+                        env.RUN_SUITE =
+                            params.Suite
+
+                        env.RUN_HEADLESS =
+                            params.Headless.toString()
+                    }
+
+
+                    echo "===================================="
+                    echo "Sprint 31 - Execution Configuration"
+                    echo "Build Trigger : ${env.BUILD_TRIGGER}"
+                    echo "===================================="
+                    echo "Environment : ${env.RUN_ENVIRONMENT}"
+                    echo "Browser     : ${env.RUN_BROWSER}"
+                    echo "Suite       : ${env.RUN_SUITE}"
+                    echo "Headless    : ${env.RUN_HEADLESS}"
+                    echo "===================================="
+                }
+            }
+        }
+
 
         stage('Environment Information') {
 
@@ -95,15 +192,18 @@ pipeline {
                 echo "Repository  : ${env.REPOSITORY}"
                 echo "Branch      : ${env.GIT_BRANCH}"
                 echo "Maven Goal  : ${env.MAVEN_GOAL}"
-                echo "Environment : ${params.Environment}"
-                echo "Browser     : ${params.Browser}"
-                echo "Suite       : ${params.Suite}"
-                echo "Headless    : ${params.Headless}"
+
+                echo "Build Trigger : ${env.BUILD_TRIGGER}"
+
+                echo "Environment : ${env.RUN_ENVIRONMENT}"
+                echo "Browser     : ${env.RUN_BROWSER}"
+                echo "Suite       : ${env.RUN_SUITE}"
+                echo "Headless    : ${env.RUN_HEADLESS}"
+
                 echo "================================="
-
             }
-
         }
+
 
         stage('Credential Demonstration') {
 
@@ -119,12 +219,10 @@ pipeline {
 
                     echo "Git User : ${SSH_USER}"
                     echo "SSH Credential Loaded"
-
                 }
-
             }
-
         }
+
 
         stage('Checkout Source Code') {
 
@@ -137,10 +235,9 @@ pipeline {
                     credentialsId: 'github-ssh',
                     url: env.REPOSITORY
                 )
-
             }
-
         }
+
 
         stage('Browser Validation') {
 
@@ -148,22 +245,18 @@ pipeline {
 
                 script {
 
-                    if (params.Browser == "Chrome") {
+                    if (env.RUN_BROWSER == "Chrome") {
 
                         echo "Executing Chrome Tests"
-
                     }
                     else {
 
                         echo "Executing Edge Tests"
-
                     }
-
                 }
-
             }
-
         }
+
 
         stage('Scripted Pipeline Demo') {
 
@@ -184,13 +277,11 @@ pipeline {
                     for (browser in browsers) {
 
                         echo "Supported Browser : ${browser}"
-
                     }
 
                     def buildMessage = { name ->
 
                         return "Welcome ${name}"
-
                     }
 
                     echo buildMessage(projectName)
@@ -202,24 +293,19 @@ pipeline {
                         int value = 100
 
                         echo "Value = ${value}"
-
                     }
                     catch (Exception ex) {
 
                         echo "Exception : ${ex.getMessage()}"
-
                     }
                     finally {
 
                         echo "Script Block Completed"
-
                     }
-
                 }
-
             }
-
         }
+
 
         /*
          * Sprint 24
@@ -242,13 +328,11 @@ pipeline {
             tools {
 
                 maven 'Name Maven-3.9.9'
-
             }
 
             environment {
 
                 TEST_OWNER = "Automation Team"
-
             }
 
             steps {
@@ -264,19 +348,16 @@ pipeline {
 
                         bat """
                         mvn ${env.MAVEN_GOAL} ^
-                        -Denvironment=${params.Environment} ^
-                        -Dbrowser=${params.Browser} ^
-                        -Dsuite=${params.Suite} ^
-                        -Dheadless=${params.Headless}
+                        -Denvironment=${env.RUN_ENVIRONMENT} ^
+                        -Dbrowser=${env.RUN_BROWSER} ^
+                        -Dsuite=${env.RUN_SUITE} ^
+                        -Dheadless=${env.RUN_HEADLESS}
                         """
-
                     }
-
                 }
-
             }
-
         }
+
 
         stage('Publish Test Results') {
 
@@ -286,10 +367,9 @@ pipeline {
                     testResults: 'target/surefire-reports/*.xml',
                     allowEmptyResults: false
                 )
-
             }
-
         }
+
 
         /*
          * Sprint 23
@@ -316,10 +396,9 @@ pipeline {
                 echo Report Location:
                 echo target\\custom-report\\index.html
                 """
-
             }
-
         }
+
 
         stage('Publish Custom HTML Report') {
 
@@ -336,10 +415,9 @@ pipeline {
                         reportTitles: 'SauceDemo Automation Execution Report'
                     ]
                 )
-
             }
-
         }
+
 
         stage('Archive Artifacts') {
 
@@ -347,10 +425,8 @@ pipeline {
 
                 expression {
 
-                    params.Suite == "Smoke"
-
+                    env.RUN_SUITE == "Smoke"
                 }
-
             }
 
             steps {
@@ -359,23 +435,14 @@ pipeline {
                     artifacts: 'target/**/*',
                     fingerprint: true
                 )
-
             }
-
         }
 
+
         /*
-         * Sprint 24
+         * Sprint 24 + Sprint 25
          *
-         * QUALITY GATE
-         *
-         * Test results and reports are generated first.
-         * Only after that do we decide whether the
-         * pipeline is allowed to continue.
-         *
-         * SUCCESS  -> Continue
-         * UNSTABLE -> Stop
-         * FAILURE  -> Stop
+         * Environment-aware quality gate.
          */
 
         stage('Quality Gate') {
@@ -386,74 +453,64 @@ pipeline {
 
                     echo "===================================="
                     echo "Sprint 25 - Quality Gate"
-                    echo "Environment : ${params.Environment}"
+                    echo "Environment : ${env.RUN_ENVIRONMENT}"
                     echo "Current Build Result : ${currentBuild.currentResult}"
                     echo "===================================="
 
+
                     if (currentBuild.currentResult != 'SUCCESS') {
 
-                        if (params.Environment == 'QA') {
+                        if (env.RUN_ENVIRONMENT == 'QA') {
 
                             error(
                                 "QA Quality Gate Failed - Automated tests did not pass."
                             )
-
                         }
-                        else if (params.Environment == 'UAT') {
+                        else if (env.RUN_ENVIRONMENT == 'UAT') {
 
                             error(
                                 "UAT Quality Gate Failed - UAT deployment is blocked."
                             )
-
                         }
-                        else if (params.Environment == 'PROD') {
+                        else if (env.RUN_ENVIRONMENT == 'PROD') {
 
                             error(
                                 "PROD Quality Gate Failed - Production deployment is blocked."
                             )
-
                         }
-
                     }
 
-                    if (params.Environment == 'QA') {
+
+                    if (env.RUN_ENVIRONMENT == 'QA') {
 
                         echo "QA Quality Gate PASSED"
                         echo "QA deployment is not applicable."
-
                     }
-                    else if (params.Environment == 'UAT') {
+                    else if (env.RUN_ENVIRONMENT == 'UAT') {
 
                         echo "UAT Quality Gate PASSED"
                         echo "UAT deployment is allowed."
-
                     }
-                    else if (params.Environment == 'PROD') {
+                    else if (env.RUN_ENVIRONMENT == 'PROD') {
 
                         echo "PROD Quality Gate PASSED"
                         echo "Production approval can proceed."
-
                     }
+
 
                     echo "===================================="
                     echo "Quality Gate Completed Successfully"
                     echo "===================================="
-
                 }
-
             }
-
         }
+
 
         /*
          * Sprint 22
          *
          * Production approval is required
          * only for PROD.
-         *
-         * QA  -> No approval
-         * UAT  -> No approval
-         * PROD -> Approval
          */
 
         stage('Production Approval') {
@@ -464,10 +521,8 @@ pipeline {
 
                 expression {
 
-                    params.Environment == 'PROD'
-
+                    env.RUN_ENVIRONMENT == 'PROD'
                 }
-
             }
 
             input {
@@ -475,16 +530,14 @@ pipeline {
                 message 'Approve Production Deployment?'
 
                 ok 'Approve'
-
             }
 
             steps {
 
                 echo 'Production deployment approved.'
-
             }
-
         }
+
 
         /*
          * Sprint 21 + Sprint 22
@@ -493,9 +546,6 @@ pipeline {
          *
          * Environment != QA
          * Branch == main
-         *
-         * Sprint 24 Quality Gate is positioned
-         * before this stage.
          */
 
         stage('Deploy') {
@@ -506,28 +556,24 @@ pipeline {
 
                     expression {
 
-                        params.Environment != 'QA'
-
+                        env.RUN_ENVIRONMENT != 'QA'
                     }
 
                     expression {
 
                         env.GIT_BRANCH == 'main'
-
                     }
-
                 }
-
             }
 
             steps {
 
                 script {
 
-                    deployApplication(params.Environment)
-
+                    deployApplication(
+                        env.RUN_ENVIRONMENT
+                    )
                 }
-
             }
 
             post {
@@ -535,18 +581,15 @@ pipeline {
                 success {
 
                     echo "Deployment Successful"
-
                 }
 
                 failure {
 
                     echo "Deployment Failed"
-
                 }
-
             }
-
         }
+
 
         stage('Use Secret Credential') {
 
@@ -566,12 +609,10 @@ pipeline {
                     bat '''
                     echo Secret Credential Used
                     '''
-
                 }
-
             }
-
         }
+
 
         stage('Parallel Demo') {
 
@@ -582,9 +623,7 @@ pipeline {
                     steps {
 
                         echo "Chrome Stage Running"
-
                     }
-
                 }
 
                 stage('Edge Validation') {
@@ -592,14 +631,11 @@ pipeline {
                     steps {
 
                         echo "Edge Stage Running"
-
                     }
-
                 }
-
             }
-
         }
+
 
         stage('Matrix Demo') {
 
@@ -612,9 +648,7 @@ pipeline {
                         name 'BrowserName'
 
                         values 'Chrome', 'Edge'
-
                     }
-
                 }
 
                 stages {
@@ -624,16 +658,12 @@ pipeline {
                         steps {
 
                             echo "Running on ${BrowserName}"
-
                         }
-
                     }
-
                 }
-
             }
-
         }
+
 
         stage('Stash Demo') {
 
@@ -645,10 +675,9 @@ pipeline {
                 )
 
                 echo "Files Stashed"
-
             }
-
         }
+
 
         stage('Unstash Demo') {
 
@@ -659,20 +688,18 @@ pipeline {
                 unstash 'project-files'
 
                 echo "Files Restored"
-
             }
-
         }
-
     }
+
 
     post {
 
         always {
 
             echo "Pipeline Execution Completed"
-
         }
+
 
         success {
 
@@ -685,9 +712,11 @@ pipeline {
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
-                <p><b>Environment:</b> ${params.Environment}</p>
-                <p><b>Browser:</b> ${params.Browser}</p>
-                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+                <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
+                <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
+                <p><b>Suite:</b> ${env.RUN_SUITE}</p>
+                <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
                 <p><b>Status:</b> SUCCESS</p>
 
                 <p>
@@ -699,8 +728,8 @@ pipeline {
                 mimeType: 'text/html',
                 to: 'pmplak0123@gmail.com'
             )
-
         }
+
 
         failure {
 
@@ -713,9 +742,11 @@ pipeline {
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
-                <p><b>Environment:</b> ${params.Environment}</p>
-                <p><b>Browser:</b> ${params.Browser}</p>
-                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+                <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
+                <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
+                <p><b>Suite:</b> ${env.RUN_SUITE}</p>
+                <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
                 <p><b>Status:</b> FAILURE</p>
 
                 <p>
@@ -727,8 +758,8 @@ pipeline {
                 mimeType: 'text/html',
                 to: 'pmplak0123@gmail.com'
             )
-
         }
+
 
         unstable {
 
@@ -741,9 +772,11 @@ pipeline {
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
-                <p><b>Environment:</b> ${params.Environment}</p>
-                <p><b>Browser:</b> ${params.Browser}</p>
-                <p><b>Suite:</b> ${params.Suite}</p>
+                <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+                <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
+                <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
+                <p><b>Suite:</b> ${env.RUN_SUITE}</p>
+                <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
                 <p><b>Status:</b> UNSTABLE</p>
 
                 <p>
@@ -755,8 +788,6 @@ pipeline {
                 mimeType: 'text/html',
                 to: 'pmplak0123@gmail.com'
             )
-
         }
-
     }
 }
