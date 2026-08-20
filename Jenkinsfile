@@ -13,6 +13,7 @@ pipeline {
 
     agent any
 
+
     options {
 
         timestamps()
@@ -36,18 +37,10 @@ pipeline {
 
 
     /*
-     * Sprint 30 / Sprint 31
+     * Sprint 30 / 31 timer removed.
      *
-     * Temporary timer used for learning.
-     *
-     * Jenkins executes approximately every 5 minutes
-     * regardless of whether Git changed.
+     * No automatic cron execution now.
      */
-
-    triggers {
-
-        cron('H/5 * * * *')
-    }
 
 
     tools {
@@ -59,13 +52,29 @@ pipeline {
     environment {
 
         BUILD_OWNER = 'Petchimuthu Pandiyan'
-        GIT_BRANCH  = 'main'
-        REPOSITORY  = 'git@github.com:pmplak/selenium-cicd-demo.git'
-        MAVEN_GOAL  = 'clean test'
+
+        REPOSITORY =
+            'git@github.com:pmplak/selenium-cicd-demo.git'
+
+        MAVEN_GOAL =
+            'clean test'
     }
 
 
     parameters {
+
+        /*
+         * Sprint 32
+         *
+         * Branch to build.
+         */
+
+        choice(
+            name: 'GitBranch',
+            choices: ['main', 'develop'],
+            description: 'Select Git branch to build'
+        )
+
 
         choice(
             name: 'Environment',
@@ -73,17 +82,20 @@ pipeline {
             description: 'Select Environment'
         )
 
+
         choice(
             name: 'Browser',
             choices: ['Chrome', 'Edge'],
             description: 'Select Browser'
         )
 
+
         choice(
             name: 'Suite',
             choices: ['Smoke', 'Regression'],
             description: 'Select Test Suite'
         )
+
 
         booleanParam(
             name: 'Headless',
@@ -99,13 +111,8 @@ pipeline {
         /*
          * Sprint 31
          *
-         * Determine HOW Jenkins started this build.
-         *
-         * TIMER:
-         * Use predefined nightly/scheduled configuration.
-         *
-         * MANUAL / SCM / WEBHOOK:
-         * Use values supplied through Jenkins parameters.
+         * Detect how the build was started and
+         * resolve the actual execution settings.
          */
 
         stage('Resolve Execution Configuration') {
@@ -118,6 +125,7 @@ pipeline {
                         currentBuild.getBuildCauses()
 
                     echo "Build Causes : ${causes}"
+
 
                     boolean timerTriggered =
                         causes.any { cause ->
@@ -164,11 +172,8 @@ pipeline {
 
 
                     /*
-                    * Fail-fast protection.
-                    *
-                    * Never allow deployment/test execution
-                    * with missing configuration.
-                    */
+                     * Fail-fast configuration validation.
+                     */
 
                     if (!env.RUN_ENVIRONMENT ||
                         env.RUN_ENVIRONMENT == 'null') {
@@ -178,6 +183,7 @@ pipeline {
                         )
                     }
 
+
                     if (!env.RUN_BROWSER ||
                         env.RUN_BROWSER == 'null') {
 
@@ -186,6 +192,7 @@ pipeline {
                         )
                     }
 
+
                     if (!env.RUN_SUITE ||
                         env.RUN_SUITE == 'null') {
 
@@ -193,6 +200,7 @@ pipeline {
                             "Execution configuration error: Suite is missing."
                         )
                     }
+
 
                     if (!env.RUN_HEADLESS ||
                         env.RUN_HEADLESS == 'null') {
@@ -203,14 +211,64 @@ pipeline {
                     }
 
 
+                    if (!params.GitBranch ||
+                        params.GitBranch == 'null') {
+
+                        error(
+                            "Execution configuration error: Git branch is missing."
+                        )
+                    }
+
+
                     echo "===================================="
-                    echo "Sprint 31 - Execution Configuration"
+                    echo "Sprint 31/32 - Execution Configuration"
                     echo "Build Trigger : ${env.BUILD_TRIGGER}"
+                    echo "Git Branch    : ${params.GitBranch}"
+                    echo "Environment   : ${env.RUN_ENVIRONMENT}"
+                    echo "Browser       : ${env.RUN_BROWSER}"
+                    echo "Suite         : ${env.RUN_SUITE}"
+                    echo "Headless      : ${env.RUN_HEADLESS}"
                     echo "===================================="
-                    echo "Environment : ${env.RUN_ENVIRONMENT}"
-                    echo "Browser     : ${env.RUN_BROWSER}"
-                    echo "Suite       : ${env.RUN_SUITE}"
-                    echo "Headless    : ${env.RUN_HEADLESS}"
+                }
+            }
+        }
+
+
+        /*
+         * Sprint 32
+         *
+         * Explicit branch governance information.
+         */
+
+        stage('Branch Policy') {
+
+            steps {
+
+                script {
+
+                    echo "===================================="
+                    echo "Sprint 32 - Branch Policy"
+                    echo "Selected Branch : ${params.GitBranch}"
+
+
+                    if (params.GitBranch == 'main') {
+
+                        echo "Branch Type : MAIN"
+                        echo "Deployment Eligibility : ALLOWED"
+                    }
+                    else if (params.GitBranch == 'develop') {
+
+                        echo "Branch Type : DEVELOPMENT"
+                        echo "Deployment Eligibility : BLOCKED"
+                    }
+                    else {
+
+                        error(
+                            "Unsupported Git branch: ${params.GitBranch}"
+                        )
+                    }
+
+
                     echo "===================================="
                 }
             }
@@ -224,7 +282,7 @@ pipeline {
                 echo "================================="
                 echo "Build Owner : ${env.BUILD_OWNER}"
                 echo "Repository  : ${env.REPOSITORY}"
-                echo "Branch      : ${env.GIT_BRANCH}"
+                echo "Branch      : ${params.GitBranch}"
                 echo "Maven Goal  : ${env.MAVEN_GOAL}"
 
                 echo "Build Trigger : ${env.BUILD_TRIGGER}"
@@ -244,11 +302,13 @@ pipeline {
             steps {
 
                 withCredentials([
+
                     sshUserPrivateKey(
                         credentialsId: 'github-ssh',
                         keyFileVariable: 'SSH_KEY',
                         usernameVariable: 'SSH_USER'
                     )
+
                 ]) {
 
                     echo "Git User : ${SSH_USER}"
@@ -258,6 +318,12 @@ pipeline {
         }
 
 
+        /*
+         * Sprint 32
+         *
+         * Checkout the branch selected by the user.
+         */
+
         stage('Checkout Source Code') {
 
             steps {
@@ -265,10 +331,12 @@ pipeline {
                 cleanWs()
 
                 git(
-                    branch: env.GIT_BRANCH,
+                    branch: params.GitBranch,
                     credentialsId: 'github-ssh',
                     url: env.REPOSITORY
                 )
+
+                echo "Checked out branch: ${params.GitBranch}"
             }
         }
 
@@ -300,31 +368,41 @@ pipeline {
 
                     echo "===== Scripted Pipeline Demo ====="
 
-                    def projectName = "Selenium CI/CD"
-                    def version = "1.0"
+                    def projectName =
+                        "Selenium CI/CD"
+
+                    def version =
+                        "1.0"
 
                     echo "Project : ${projectName}"
                     echo "Version : ${version}"
 
-                    def browsers = ["Chrome", "Edge"]
+
+                    def browsers =
+                        ["Chrome", "Edge"]
+
 
                     for (browser in browsers) {
 
                         echo "Supported Browser : ${browser}"
                     }
 
+
                     def buildMessage = { name ->
 
                         return "Welcome ${name}"
                     }
 
+
                     echo buildMessage(projectName)
+
 
                     try {
 
                         echo "Executing Groovy Logic"
 
-                        int value = 100
+                        int value =
+                            100
 
                         echo "Value = ${value}"
                     }
@@ -342,19 +420,10 @@ pipeline {
 
 
         /*
-         * Sprint 24
+         * Sprint 24 + Sprint 31
          *
-         * Test execution is allowed to complete even when
-         * automated tests fail.
-         *
-         * This allows:
-         *
-         * 1. JUnit results to be published
-         * 2. Custom HTML report to be generated
-         * 3. Quality Gate to make the final decision
-         *
-         * Test failure => UNSTABLE
-         * Infrastructure/build failure => FAILURE
+         * Test failure becomes UNSTABLE first so
+         * reports can still be generated.
          */
 
         stage('Build & Execute Tests') {
@@ -364,14 +433,18 @@ pipeline {
                 maven 'Name Maven-3.9.9'
             }
 
+
             environment {
 
-                TEST_OWNER = "Automation Team"
+                TEST_OWNER =
+                    "Automation Team"
             }
+
 
             steps {
 
                 echo "Stage Owner : ${TEST_OWNER}"
+
 
                 catchError(
                     buildResult: 'UNSTABLE',
@@ -398,23 +471,15 @@ pipeline {
             steps {
 
                 junit(
-                    testResults: 'target/surefire-reports/*.xml',
-                    allowEmptyResults: false
+                    testResults:
+                        'target/surefire-reports/*.xml',
+
+                    allowEmptyResults:
+                        false
                 )
             }
         }
 
-
-        /*
-         * Sprint 23
-         *
-         * The Selenium framework itself generates
-         * the custom HTML report.
-         *
-         * Report:
-         *
-         * target/custom-report/index.html
-         */
 
         stage('Verify Custom HTML Report') {
 
@@ -439,14 +504,29 @@ pipeline {
             steps {
 
                 publishHTML(
+
                     target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target/custom-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Custom Selenium Automation Report',
-                        reportTitles: 'SauceDemo Automation Execution Report'
+
+                        allowMissing:
+                            false,
+
+                        alwaysLinkToLastBuild:
+                            true,
+
+                        keepAll:
+                            true,
+
+                        reportDir:
+                            'target/custom-report',
+
+                        reportFiles:
+                            'index.html',
+
+                        reportName:
+                            'Custom Selenium Automation Report',
+
+                        reportTitles:
+                            'SauceDemo Automation Execution Report'
                     ]
                 )
             }
@@ -463,6 +543,7 @@ pipeline {
                 }
             }
 
+
             steps {
 
                 archiveArtifacts(
@@ -474,9 +555,7 @@ pipeline {
 
 
         /*
-         * Sprint 24 + Sprint 25
-         *
-         * Environment-aware quality gate.
+         * Environment-aware Quality Gate.
          */
 
         stage('Quality Gate') {
@@ -487,6 +566,7 @@ pipeline {
 
                     echo "===================================="
                     echo "Sprint 25 - Quality Gate"
+                    echo "Branch : ${params.GitBranch}"
                     echo "Environment : ${env.RUN_ENVIRONMENT}"
                     echo "Current Build Result : ${currentBuild.currentResult}"
                     echo "===================================="
@@ -494,18 +574,23 @@ pipeline {
 
                     if (currentBuild.currentResult != 'SUCCESS') {
 
+
                         if (env.RUN_ENVIRONMENT == 'QA') {
 
                             error(
                                 "QA Quality Gate Failed - Automated tests did not pass."
                             )
                         }
+
+
                         else if (env.RUN_ENVIRONMENT == 'UAT') {
 
                             error(
                                 "UAT Quality Gate Failed - UAT deployment is blocked."
                             )
                         }
+
+
                         else if (env.RUN_ENVIRONMENT == 'PROD') {
 
                             error(
@@ -520,15 +605,20 @@ pipeline {
                         echo "QA Quality Gate PASSED"
                         echo "QA deployment is not applicable."
                     }
+
+
                     else if (env.RUN_ENVIRONMENT == 'UAT') {
 
                         echo "UAT Quality Gate PASSED"
-                        echo "UAT deployment is allowed."
+                        echo "Environment is deployment eligible."
+                        echo "Branch policy will make final deployment decision."
                     }
+
+
                     else if (env.RUN_ENVIRONMENT == 'PROD') {
 
                         echo "PROD Quality Gate PASSED"
-                        echo "Production approval can proceed."
+                        echo "Branch policy will decide whether production approval is allowed."
                     }
 
 
@@ -541,10 +631,15 @@ pipeline {
 
 
         /*
-         * Sprint 22
+         * Sprint 22 + Sprint 32
          *
-         * Production approval is required
-         * only for PROD.
+         * Production approval is allowed ONLY when:
+         *
+         * Environment = PROD
+         * AND
+         * Branch = main
+         *
+         * develop must never request production approval.
          */
 
         stage('Production Approval') {
@@ -553,11 +648,22 @@ pipeline {
 
                 beforeInput true
 
-                expression {
 
-                    env.RUN_ENVIRONMENT == 'PROD'
+                allOf {
+
+                    expression {
+
+                        env.RUN_ENVIRONMENT == 'PROD'
+                    }
+
+
+                    expression {
+
+                        params.GitBranch == 'main'
+                    }
                 }
             }
+
 
             input {
 
@@ -565,6 +671,7 @@ pipeline {
 
                 ok 'Approve'
             }
+
 
             steps {
 
@@ -574,12 +681,18 @@ pipeline {
 
 
         /*
-         * Sprint 21 + Sprint 22
+         * Sprint 32
          *
-         * Deploy only when:
+         * Deployment policy:
          *
-         * Environment != QA
-         * Branch == main
+         * QA      -> Never deploy
+         *
+         * UAT     -> Deploy only from main
+         *
+         * PROD    -> Deploy only from main
+         *            and after approval
+         *
+         * develop -> Never deploy
          */
 
         stage('Deploy') {
@@ -588,21 +701,32 @@ pipeline {
 
                 allOf {
 
+
                     expression {
 
                         env.RUN_ENVIRONMENT != 'QA'
                     }
 
+
                     expression {
 
-                        env.GIT_BRANCH == 'main'
+                        params.GitBranch == 'main'
                     }
                 }
             }
 
+
             steps {
 
                 script {
+
+                    echo "===================================="
+                    echo "Sprint 32 - Deployment Governance"
+                    echo "Branch      : ${params.GitBranch}"
+                    echo "Environment : ${env.RUN_ENVIRONMENT}"
+                    echo "Decision    : DEPLOYMENT ALLOWED"
+                    echo "===================================="
+
 
                     deployApplication(
                         env.RUN_ENVIRONMENT
@@ -610,12 +734,14 @@ pipeline {
                 }
             }
 
+
             post {
 
                 success {
 
                     echo "Deployment Successful"
                 }
+
 
                 failure {
 
@@ -652,6 +778,7 @@ pipeline {
 
             parallel {
 
+
                 stage('Chrome Validation') {
 
                     steps {
@@ -659,6 +786,7 @@ pipeline {
                         echo "Chrome Stage Running"
                     }
                 }
+
 
                 stage('Edge Validation') {
 
@@ -684,6 +812,7 @@ pipeline {
                         values 'Chrome', 'Edge'
                     }
                 }
+
 
                 stages {
 
@@ -729,6 +858,7 @@ pipeline {
 
     post {
 
+
         always {
 
             echo "Pipeline Execution Completed"
@@ -739,18 +869,27 @@ pipeline {
 
             echo "Build Completed Successfully"
 
+
             emailext(
-                subject: "SUCCESS - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
+                subject:
+                    "SUCCESS - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
                 body: """
                 <h2>Jenkins Build Successful</h2>
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+
                 <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+
+                <p><b>Git Branch:</b> ${params.GitBranch}</p>
+
                 <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
                 <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
                 <p><b>Suite:</b> ${env.RUN_SUITE}</p>
                 <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
+
                 <p><b>Status:</b> SUCCESS</p>
 
                 <p>
@@ -759,8 +898,12 @@ pipeline {
                     </a>
                 </p>
                 """,
-                mimeType: 'text/html',
-                to: 'pmplak0123@gmail.com'
+
+                mimeType:
+                    'text/html',
+
+                to:
+                    'pmplak0123@gmail.com'
             )
         }
 
@@ -769,18 +912,27 @@ pipeline {
 
             echo "Build Failed"
 
+
             emailext(
-                subject: "FAILURE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
+                subject:
+                    "FAILURE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
                 body: """
                 <h2>Jenkins Build Failed</h2>
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+
                 <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+
+                <p><b>Git Branch:</b> ${params.GitBranch}</p>
+
                 <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
                 <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
                 <p><b>Suite:</b> ${env.RUN_SUITE}</p>
                 <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
+
                 <p><b>Status:</b> FAILURE</p>
 
                 <p>
@@ -789,8 +941,12 @@ pipeline {
                     </a>
                 </p>
                 """,
-                mimeType: 'text/html',
-                to: 'pmplak0123@gmail.com'
+
+                mimeType:
+                    'text/html',
+
+                to:
+                    'pmplak0123@gmail.com'
             )
         }
 
@@ -799,18 +955,27 @@ pipeline {
 
             echo "Build Marked UNSTABLE"
 
+
             emailext(
-                subject: "UNSTABLE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
+                subject:
+                    "UNSTABLE - ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
+
                 body: """
                 <h2>Jenkins Build Unstable</h2>
 
                 <p><b>Project:</b> ${env.JOB_NAME}</p>
                 <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+
                 <p><b>Trigger:</b> ${env.BUILD_TRIGGER}</p>
+
+                <p><b>Git Branch:</b> ${params.GitBranch}</p>
+
                 <p><b>Environment:</b> ${env.RUN_ENVIRONMENT}</p>
                 <p><b>Browser:</b> ${env.RUN_BROWSER}</p>
                 <p><b>Suite:</b> ${env.RUN_SUITE}</p>
                 <p><b>Headless:</b> ${env.RUN_HEADLESS}</p>
+
                 <p><b>Status:</b> UNSTABLE</p>
 
                 <p>
@@ -819,8 +984,12 @@ pipeline {
                     </a>
                 </p>
                 """,
-                mimeType: 'text/html',
-                to: 'pmplak0123@gmail.com'
+
+                mimeType:
+                    'text/html',
+
+                to:
+                    'pmplak0123@gmail.com'
             )
         }
     }
