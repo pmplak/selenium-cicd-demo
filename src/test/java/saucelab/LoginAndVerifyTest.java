@@ -15,8 +15,7 @@ import org.testng.annotations.Test;
 public class LoginAndVerifyTest {
 
     @Test
-    public void loginTest()
-            throws InterruptedException {
+    public void loginTest() throws InterruptedException {
 
         String environment =
                 System.getProperty("environment");
@@ -57,14 +56,23 @@ public class LoginAndVerifyTest {
                             driver,
                             Duration.ofSeconds(30));
 
+            driver.navigate().to(
+                    "https://www.saucedemo.com");
+
             CustomReportManager.logStep(
                     "Open SauceDemo application",
                     "SauceDemo login page should be displayed",
                     "SauceDemo login page opened",
                     "PASS");
 
-            driver.navigate().to(
-                    "https://www.saucedemo.com");
+            WebElement userName =
+                    wait.until(
+                            ExpectedConditions
+                                    .visibilityOfElementLocated(
+                                            By.id("user-name")));
+
+            userName.sendKeys(
+                    "standard_user");
 
             CustomReportManager.logStep(
                     "Enter username",
@@ -72,14 +80,14 @@ public class LoginAndVerifyTest {
                     "Username entered: standard_user",
                     "PASS");
 
-            WebElement userName =
+            WebElement passWord =
                     wait.until(
-                        ExpectedConditions
-                            .visibilityOfElementLocated(
-                                By.id("user-name")));
+                            ExpectedConditions
+                                    .visibilityOfElementLocated(
+                                            By.id("password")));
 
-            userName.sendKeys(
-                    "standard_user");
+            passWord.sendKeys(
+                    "secret_sauce");
 
             CustomReportManager.logStep(
                     "Enter password",
@@ -87,14 +95,9 @@ public class LoginAndVerifyTest {
                     "Password entered successfully",
                     "PASS");
 
-            WebElement passWord =
-                    wait.until(
-                        ExpectedConditions
-                            .visibilityOfElementLocated(
-                                By.id("password")));
-
-            passWord.sendKeys(
-                    "secret_sauce");
+            driver.findElement(
+                    By.id("login-button"))
+                    .click();
 
             CustomReportManager.logStep(
                     "Click Login button",
@@ -102,34 +105,26 @@ public class LoginAndVerifyTest {
                     "Login button clicked",
                     "PASS");
 
-            driver.findElement(
-                    By.id("login-button"))
-                    .click();
-
-            CustomReportManager.logStep(
-                    "Verify Products page",
-                    "Products",
-                    driver.findElement(
-                            By.xpath(
-                                "//span[.='Products']"))
-                        .getText(),
-                    "PASS");
-
             String actualText =
                     wait.until(
-                        ExpectedConditions
-                            .visibilityOfElementLocated(
-                                By.xpath(
-                                    "//span[.='Products']")))
-                    .getText();
+                            ExpectedConditions
+                                    .visibilityOfElementLocated(
+                                            By.xpath(
+                                                    "//span[.='Products']")))
+                            .getText();
 
             try {
 
                 Assert.assertEquals(
                         actualText,
-                        "Products");
+                        "WRONG_PRODUCTS");
 
-                        
+                CustomReportManager.logStep(
+                        "Verify Products page",
+                        "Products",
+                        actualText,
+                        "PASS");
+
             }
             catch (AssertionError e) {
 
@@ -144,19 +139,19 @@ public class LoginAndVerifyTest {
 
             System.out.println(
                     "Environment : "
-                    + environment);
+                            + environment);
 
             System.out.println(
                     "Browser     : "
-                    + browser);
+                            + browser);
 
             System.out.println(
                     "Suite       : "
-                    + suite);
+                            + suite);
 
             System.out.println(
                     "Headless    : "
-                    + headless);
+                            + headless);
 
         }
         catch (AssertionError e) {
