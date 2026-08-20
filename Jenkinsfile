@@ -69,13 +69,14 @@ pipeline {
          * These contain the ACTUAL configuration
          * that the pipeline decides to execute.
          */
+         environment {
 
-        RUN_ENVIRONMENT = ''
-        RUN_BROWSER     = ''
-        RUN_SUITE       = ''
-        RUN_HEADLESS    = ''
+            BUILD_OWNER = 'Petchimuthu Pandiyan'
+            GIT_BRANCH  = 'main'
+            REPOSITORY  = 'git@github.com:pmplak/selenium-cicd-demo.git'
+            MAVEN_GOAL  = 'clean test'
+        }
 
-        BUILD_TRIGGER   = ''
     }
 
 
@@ -128,44 +129,92 @@ pipeline {
 
                 script {
 
-                    def timerCauses =
-                        currentBuild.getBuildCauses(
-                            'hudson.triggers.TimerTrigger$TimerTriggerCause'
-                        )
+                    def causes =
+                        currentBuild.getBuildCauses()
 
-                    if (timerCauses != null
-                            && !timerCauses.isEmpty()) {
+                    echo "Build Causes : ${causes}"
 
-                        env.BUILD_TRIGGER = 'TIMER'
+                    boolean timerTriggered =
+                        causes.any { cause ->
 
-                        /*
-                         * Scheduled execution policy
-                         */
+                            cause._class ==
+                                'hudson.triggers.TimerTrigger$TimerTriggerCause'
+                        }
 
-                        env.RUN_ENVIRONMENT = 'QA'
-                        env.RUN_BROWSER     = 'Chrome'
-                        env.RUN_SUITE       = 'Regression'
-                        env.RUN_HEADLESS    = 'true'
+
+                    if (timerTriggered) {
+
+                        env.BUILD_TRIGGER =
+                            'TIMER'
+
+                        env.RUN_ENVIRONMENT =
+                            'QA'
+
+                        env.RUN_BROWSER =
+                            'Chrome'
+
+                        env.RUN_SUITE =
+                            'Regression'
+
+                        env.RUN_HEADLESS =
+                            'true'
                     }
                     else {
 
-                        env.BUILD_TRIGGER = 'MANUAL / SCM / WEBHOOK'
-
-                        /*
-                         * Interactive / source-triggered execution
-                         */
+                        env.BUILD_TRIGGER =
+                            'MANUAL / SCM / WEBHOOK'
 
                         env.RUN_ENVIRONMENT =
-                            params.Environment
+                            "${params.Environment}"
 
                         env.RUN_BROWSER =
-                            params.Browser
+                            "${params.Browser}"
 
                         env.RUN_SUITE =
-                            params.Suite
+                            "${params.Suite}"
 
                         env.RUN_HEADLESS =
-                            params.Headless.toString()
+                            "${params.Headless}"
+                    }
+
+
+                    /*
+                    * Fail-fast protection.
+                    *
+                    * Never allow deployment/test execution
+                    * with missing configuration.
+                    */
+
+                    if (!env.RUN_ENVIRONMENT ||
+                        env.RUN_ENVIRONMENT == 'null') {
+
+                        error(
+                            "Execution configuration error: Environment is missing."
+                        )
+                    }
+
+                    if (!env.RUN_BROWSER ||
+                        env.RUN_BROWSER == 'null') {
+
+                        error(
+                            "Execution configuration error: Browser is missing."
+                        )
+                    }
+
+                    if (!env.RUN_SUITE ||
+                        env.RUN_SUITE == 'null') {
+
+                        error(
+                            "Execution configuration error: Suite is missing."
+                        )
+                    }
+
+                    if (!env.RUN_HEADLESS ||
+                        env.RUN_HEADLESS == 'null') {
+
+                        error(
+                            "Execution configuration error: Headless value is missing."
+                        )
                     }
 
 
