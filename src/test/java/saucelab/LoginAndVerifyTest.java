@@ -114,7 +114,6 @@ public class LoginAndVerifyTest {
                             .getText();
 
             try {
-
                 Assert.assertEquals(
                         actualText,
                         "Products");

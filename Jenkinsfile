@@ -35,6 +35,12 @@ pipeline {
 
     }
 
+    triggers {
+
+    pollSCM('H/5 * * * *')
+
+    }
+
     tools {
 
         maven 'Name Maven-3.9.9'
