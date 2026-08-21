@@ -20,8 +20,8 @@ pipeline {
 
         buildDiscarder(
             logRotator(
-                numToKeepStr: '10',
-                artifactNumToKeepStr: '5'
+                numToKeepStr: '20',
+                artifactNumToKeepStr: '10'
             )
         )
 
@@ -575,7 +575,22 @@ pipeline {
                     stageResult: 'FAILURE'
                 ) {
 
-                    retry(2) {
+                    /*
+                     * Sprint 39 - Smart Retry Strategy
+                     *
+                     * Retry only when Jenkins detects an infrastructure-level
+                     * interruption, such as an agent failure or a non-resumable
+                     * step after Jenkins restarts.
+                     *
+                     * Real Maven/TestNG assertion failures are NOT retried.
+                     */
+                    retry(
+                        count: 2,
+                        conditions: [
+                            agent(),
+                            nonresumable()
+                        ]
+                    ) {
 
                         bat """
                         mvn ${env.MAVEN_GOAL} ^
