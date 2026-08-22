@@ -155,7 +155,7 @@ pipeline {
                             "${env.CHANGE_BRANCH}"
 
                         env.RUN_ENVIRONMENT =
-                            'UAT'
+                            'QA'
 
                         env.RUN_BROWSER =
                             'Chrome'
