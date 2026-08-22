@@ -116,7 +116,7 @@ public class LoginAndVerifyTest {
             try {
                 Assert.assertEquals(
                         actualText,
-                        "Products_WRONG");
+                        "Products");
 
                 CustomReportManager.logStep(
                         "Verify Products page",
