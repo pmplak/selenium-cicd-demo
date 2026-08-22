@@ -518,3 +518,41 @@ backup and recovery
 The Jenkinsfile acts as the project pipeline orchestrator while reusable
 organizational policies are progressively moved into the Jenkins Shared
 Library.
+
+# 21. Final Enterprise Capstone Validation
+
+The complete Jenkins CI/CD architecture was validated end-to-end using a
+Pull Request workflow.
+
+Validated capabilities include:
+
+- Multibranch pipeline discovery
+- Pull Request detection
+- Centralized Jenkins Shared Library loading
+- Execution-policy guardrails
+- Branch and deployment governance
+- Secure Jenkins credentials
+- Workspace cleanup
+- Maven and Selenium execution
+- Infrastructure-aware smart retry
+- JUnit result publishing
+- Custom HTML reporting
+- Artifact archiving and fingerprinting
+- Centralized quality-gate evaluation
+- GitHub commit-status integration
+- Protected main branch workflow
+- Production approval controls
+- Build retention
+- Jenkins backup and recovery
+
+The final architecture separates project-specific automation execution from
+organization-level CI/CD governance.
+
+Project Jenkinsfile:
+Defines what the Selenium project executes.
+
+Jenkins Shared Library:
+Defines reusable enterprise CI/CD policies.
+
+This design provides a maintainable foundation that can be reused by future
+automation, API, application, and platform pipelines.
