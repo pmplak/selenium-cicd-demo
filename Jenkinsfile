@@ -1,3 +1,5 @@
+@Library('jenkins-shared-library') _
+
 def deployApplication(String environmentName) {
 
     echo "===================================="
@@ -307,12 +309,10 @@ pipeline {
 
 
         /*
-         * Sprint 40
+         * Sprint 41
          *
-         * Execution Policy Guardrails.
-         *
-         * Fail fast before checkout/test execution when an invalid
-         * branch/environment/build-type combination is detected.
+         * Execution policy is provided by the Jenkins Shared Library:
+         * jenkins-shared-library/vars/validateExecutionPolicy.groovy
          */
 
         stage('Validate Execution Policy') {
@@ -321,47 +321,14 @@ pipeline {
 
                 script {
 
-                    echo "===================================="
-                    echo "Sprint 40 - Execution Policy Validation"
-                    echo "Build Type  : ${env.RUN_BUILD_TYPE}"
-                    echo "Branch      : ${env.RUN_GIT_BRANCH}"
-                    echo "Environment : ${env.RUN_ENVIRONMENT}"
-                    echo "Browser     : ${env.RUN_BROWSER}"
-                    echo "Suite       : ${env.RUN_SUITE}"
-                    echo "Headless    : ${env.RUN_HEADLESS}"
-                    echo "===================================="
-
-                    if (env.RUN_ENVIRONMENT == 'PROD' &&
-                        env.RUN_GIT_BRANCH != 'main') {
-
-                        error(
-                            "Execution Policy Violation: PROD can run only from main."
-                        )
-                    }
-
-                    if (env.RUN_GIT_BRANCH == 'develop' &&
-                        env.RUN_ENVIRONMENT == 'PROD') {
-
-                        error(
-                            "Execution Policy Violation: develop cannot target PROD."
-                        )
-                    }
-
-                    if (env.RUN_BUILD_TYPE == 'PR' &&
-                        (
-                            env.RUN_ENVIRONMENT != 'QA' ||
-                            env.RUN_BROWSER != 'Chrome' ||
-                            env.RUN_SUITE != 'Smoke' ||
-                            env.RUN_HEADLESS != 'true'
-                        )) {
-
-                        error(
-                            "Execution Policy Violation: PR builds must use QA / Chrome / Smoke / Headless=true."
-                        )
-                    }
-
-                    echo "Execution Policy Validation PASSED"
-                    echo "===================================="
+                    validateExecutionPolicy(
+                        env.RUN_BUILD_TYPE,
+                        env.RUN_GIT_BRANCH,
+                        env.RUN_ENVIRONMENT,
+                        env.RUN_BROWSER,
+                        env.RUN_SUITE,
+                        env.RUN_HEADLESS
+                    )
                 }
             }
         }
