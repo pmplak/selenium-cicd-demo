@@ -721,89 +721,24 @@ pipeline {
         }
 
 
+        /*
+         * Sprint 44
+         *
+         * Quality gate governance is provided by the Jenkins Shared Library:
+         * jenkins-shared-library/vars/evaluateQualityGate.groovy
+         */
         stage('Quality Gate') {
 
             steps {
 
                 script {
 
-                    echo "===================================="
-                    echo "Quality Gate"
-                    echo "Build Type : ${env.RUN_BUILD_TYPE}"
-                    echo "Branch : ${env.RUN_GIT_BRANCH}"
-                    echo "Environment : ${env.RUN_ENVIRONMENT}"
-                    echo "Current Build Result : ${currentBuild.currentResult}"
-                    echo "===================================="
-
-
-                    if (currentBuild.currentResult != 'SUCCESS') {
-
-
-                        if (env.RUN_BUILD_TYPE == 'PR') {
-
-                            error(
-                                "PR Quality Gate Failed - Pull Request validation failed."
-                            )
-                        }
-
-
-                        else if (env.RUN_ENVIRONMENT == 'QA') {
-
-                            error(
-                                "QA Quality Gate Failed - Automated tests did not pass."
-                            )
-                        }
-
-
-                        else if (env.RUN_ENVIRONMENT == 'UAT') {
-
-                            error(
-                                "UAT Quality Gate Failed - Deployment blocked."
-                            )
-                        }
-
-
-                        else if (env.RUN_ENVIRONMENT == 'PROD') {
-
-                            error(
-                                "PROD Quality Gate Failed - Production deployment blocked."
-                            )
-                        }
-                    }
-
-
-                    if (env.RUN_BUILD_TYPE == 'PR') {
-
-                        echo "PR Quality Gate PASSED"
-                        echo "Pull Request is technically validated."
-                        echo "Deployment is not permitted for Pull Requests."
-                    }
-
-
-                    else if (env.RUN_ENVIRONMENT == 'QA') {
-
-                        echo "QA Quality Gate PASSED"
-                        echo "QA deployment is not applicable."
-                    }
-
-
-                    else if (env.RUN_ENVIRONMENT == 'UAT') {
-
-                        echo "UAT Quality Gate PASSED"
-                        echo "Branch policy will make final deployment decision."
-                    }
-
-
-                    else if (env.RUN_ENVIRONMENT == 'PROD') {
-
-                        echo "PROD Quality Gate PASSED"
-                        echo "Branch policy will decide production eligibility."
-                    }
-
-
-                    echo "===================================="
-                    echo "Quality Gate Completed Successfully"
-                    echo "===================================="
+                    evaluateQualityGate(
+                        env.RUN_BUILD_TYPE,
+                        env.RUN_GIT_BRANCH,
+                        env.RUN_ENVIRONMENT,
+                        currentBuild.currentResult
+                    )
                 }
             }
         }
